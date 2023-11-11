@@ -72,7 +72,6 @@ class MovingRect implements ISketchDrawable {
     } else if (this.duration - t < this.fadeDuration) {
       state = "fadeout";
       alpha = coefToHexString((this.duration - t) / this.fadeDuration);
-      console.log(alpha);
     }
     p.fill(this.color + alpha);
     p.rect(this.x, this.y, this.w, this.h);
