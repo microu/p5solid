@@ -4,7 +4,7 @@ export interface ISketchHandler {
   run(node: HTMLElement): void;
 }
 
-export type SketchDrawFunc<E = string> = (p: p5) => E | undefined;
+export type SketchDrawFunc<E = string> = (p: p5,) => E | undefined;
 
 export interface ISketchDrawable<E = string> {
   draw: SketchDrawFunc<E>;
