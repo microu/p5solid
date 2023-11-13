@@ -6,9 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest --run"
   },
   "dependencies": {
+    "@types/chroma-js": "^2.4.3",
+    "chroma-js": "^2.4.2",
     "heap-js": "^2.3.0",
     "solid-js": "^1.7.8"
   },
@@ -16,6 +19,7 @@
     "@mr-kit/tailwind": "^0.1.5",
     "@types/p5": "^1.7.3",
     "autoprefixer": "^10.4.16",
+    "jsdom": "^22.1.0",
     "npx": "^10.2.2",
     "p5": "^1.8.0",
     "postcss": "^8.4.31",
@@ -23,6 +27,7 @@
     "tsx": "^4.1.0",
     "typescript": "^5.0.2",
     "vite": "^4.4.5",
-    "vite-plugin-solid": "^2.7.0"
+    "vite-plugin-solid": "^2.7.0",
+    "vitest": "^0.34.6"
   }
 }

@@ -1,18 +1,21 @@
 import { Component } from "solid-js";
-import { ISketchHandler} from "./SketchHandlers";
+import { ISketchHandler } from "./SketchHandlers";
 
 type TProps = {
-    handler: ISketchHandler
-}
+  handler: ISketchHandler;
+  class?: string;
+};
 
-const SketchDiv : Component<TProps> = (props) => {
-    let divElt: HTMLDivElement| undefined; 
+const SketchDiv: Component<TProps> = (props) => {
+  const classes = () => props.class ?? "";
 
-    const r = <div ref={divElt}></div>
-    
-    props.handler.run(divElt!)
+  let divElt: HTMLDivElement | undefined;
 
-    return r;
-}
+  const r = <div ref={divElt} class={classes()}></div>;
 
-export default SketchDiv
+  props.handler.run(divElt!);
+
+  return r;
+};
+
+export default SketchDiv;

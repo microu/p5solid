@@ -12,6 +12,8 @@ export type DrawItemFunc<TParams = any, TState = string> = (
   context?: TDrawItemContext<TParams>
 ) => TState;
 
-export interface ISketchItem {
-  draw: DrawItemFunc;
+export interface ISketchItem<TParams = any, TState = string> {
+  draw(p: p5, context?: TDrawItemContext<TParams>): TState;
 }
+
+
