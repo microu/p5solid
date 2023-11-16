@@ -7,7 +7,7 @@ import {
   pv,
 } from "../canvas";
 
-export class CircleItem implements ICanvasItem<ICanvasTime, string> {
+export class CircleItem implements ICanvasItem<ICanvasTime> {
   constructor(
     private params: {
       color: TItemParam<string>;
@@ -28,5 +28,22 @@ export class CircleItem implements ICanvasItem<ICanvasTime, string> {
     p.fill(color);
     p.circle(x, y, d);
     return state;
+  }
+}
+
+export class UpdatableCircleItem implements ICanvasItem<ICanvasTime> {
+  public state = "";
+  constructor(
+    public x: number,
+    public y: number,
+    public d: number,
+    public color: string
+  ) {}
+
+  draw(p: p5): string {
+    p.noStroke();
+    p.fill(this.color);
+    p.circle(this.x, this.y, this.d);
+    return this.state;
   }
 }

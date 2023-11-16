@@ -6,6 +6,10 @@ export interface ICanvasTime {
   dt: number; // time (ms) since last draw i
 }
 
+export interface ICanvasItem<TContext extends ICanvasTime = CanvasTimeBase> {
+  draw(p: p5, ctx: TContext): string;
+}
+
 export class CanvasTimeBase implements ICanvasTime {
   t0: number;
   t: number;
@@ -27,6 +31,12 @@ export class CanvasTimeBase implements ICanvasTime {
       this.t = t;
     }
   }
+
+  update(other: ICanvasTime) {
+    this.t0 = other.t0;
+    this.t = other.t;
+    this.dt = other.dt;
+  }
 }
 
 export type TItemParamTypes = number | string | object;
@@ -38,7 +48,7 @@ export type TItemParam<
 export function pv<
   V extends TItemParamTypes = TItemParamTypes,
   TContext extends ICanvasTime = ICanvasTime
->(ctx: TContext, v: TItemParam<V,TContext>): V {
+>(ctx: TContext, v: TItemParam<V, TContext>): V {
   if (typeof v == "function") {
     return v(ctx);
   } else {
@@ -46,39 +56,22 @@ export function pv<
   }
 }
 
-// // export type TCanvasParamTypes = number | string | object;
-
-// export interface ICanvasParams {
-//   get(name: string): any;
-// }
-
-// export class CanvasParamsBase implements ICanvasParams {
-//   private params = new Map<string, any>();
-//   constructor(
-//     private parent?: ICanvasParams,
-//     values?: [string, any][] | Map<string, any>
-//   ) {
-//     if (values != undefined) {
-//       for (const [k, v] of values) {
-//         this.set(k, v);
-//       }
-//     }
-//   }
-
-//   get(name: string): any {
-//     return (
-//       this.params.get(name) ??
-//       (this.parent != undefined ? this.parent.get(name) : undefined)
-//     );
-//   }
-//   set(name: string, v: any) {
-//     this.params.set(name, v);
-//   }
-// }
-
-export interface ICanvasItem<
+type ItemUpdaterFunc<
   TContext extends ICanvasTime = CanvasTimeBase,
-  TState = void
-> {
-  draw(p: p5, ctx: TContext): TState;
+  TItem extends ICanvasItem<TContext> = ICanvasItem<TContext>
+> = (item: TItem, ctx: TContext) => string;
+
+export class CanvasUpdatedItem<
+  TContext extends ICanvasTime = CanvasTimeBase,
+  TItem extends ICanvasItem<TContext> = ICanvasItem<TContext>
+> implements ICanvasItem<TContext>
+{
+  constructor(
+    private item: TItem,
+    private updater: ItemUpdaterFunc<TContext, TItem>
+  ) {}
+  draw(p: p5, ctx: TContext): string {
+    this.updater(this.item, ctx);
+    return this.item.draw(p, ctx);
+  }
 }
