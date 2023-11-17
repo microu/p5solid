@@ -137,7 +137,7 @@ function circleGroupB2(colors: string[], x: number): ICanvasItem {
     adaptContext: (parentContext) => {
       context.update(parentContext);
       context.lateralWind =
-        Math.sin((Math.PI * 2 * context.t) / 5_000) * (0.01 / 1000);
+        Math.sin((Math.PI * 2 * context.t) / 2_000) ** 7 * (0.01 / 1000);
       return context;
     },
     postDraw: updateItems,
@@ -168,7 +168,7 @@ function circleGroupB2(colors: string[], x: number): ICanvasItem {
     const mpoint = new MaterialPoint(x0, y0, {
       vy: 5 / 1000,
       gravity: 0.03 / 1000,
-      m: 1 + Math.floor(Math.random() * 10),
+      m: 1 + Math.floor(Math.random() * 1),
     });
 
     return new CanvasUpdatedItem<LateralWindContext, UpdatableCircleItem>(
