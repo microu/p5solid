@@ -10,7 +10,18 @@ function App() {
       <Header title="P5JS / Solid" />
       <div class="m-auto flex flex-col justify-between w-[800px] bg-stone-300 h-96">
         <P5Div runner={sampleA()}></P5Div>
-        <div class="bg-stone-100"><p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Recusandae, asperiores doloremque debitis impedit, corporis dignissimos mollitia, quam sequi porro corrupti nobis aliquam minus fugiat. Et rem suscipit eveniet odit. Mollitia!</p></div>
+        <div class="bg-stone-100 p-2">
+          <p class="">
+            Top and bottom banners on this page use only{" "}
+            <code class="font-mono text-red-900">P5Div</code> and{" "}
+            <code class="font-mono text-red-900">P5Runner</code>
+          </p>
+          <ul class="flex flex-col">
+            <li class="m-0 list-disc list-inside">
+              <a href="./p5items.html">Samples using <code class="font-mono text-red-900">P5Item</code></a>
+            </li>
+          </ul>
+        </div>
         <P5Div runner={sampleB()}></P5Div>
       </div>
     </>

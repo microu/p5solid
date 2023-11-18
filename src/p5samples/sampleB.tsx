@@ -28,7 +28,7 @@ export const sampleB = () => {
       line.x1 += line.v * (-0.5 + line.bias + Math.random());
       line.x2 += line.v* (-0.5 + line.bias + Math.random());
       p.stroke(line.color);
-      p.strokeWeight(1.5)
+      p.strokeWeight(1.2)
       p.line(line.x1, 0, line.x2, p.height);
       if (
         (line.x1 < 0 || line.x1 > p.width) &&
@@ -42,7 +42,7 @@ export const sampleB = () => {
       lines.splice(dropLines[i], 1);
     }
     // add lines
-    while (lines.length < 12) {
+    while (lines.length < 16) {
       lines.push(createLine());
     }
   }
@@ -62,6 +62,8 @@ export const sampleB = () => {
     resolveColor("orange-100"),
     resolveColor("amber-200"),
     resolveColor("pink-100"),
+    resolveColor("emerald-100"),
+    resolveColor("purple-100"),
   ];
   function createLine(): TLine {
     const color = lineColors[Math.floor(Math.random() * lineColors.length)];

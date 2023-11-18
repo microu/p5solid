@@ -9,8 +9,8 @@ export const sampleA = () => {
   const colorHueList = [
     "rose",
     "amber",
-    "orange",
     "red",
+    "orange",
     "purple",
     "blue",
     "emerald",
