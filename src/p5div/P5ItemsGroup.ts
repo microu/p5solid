@@ -51,6 +51,14 @@ export class P5ItemsGroup<
     return "";
   }
 
+  get length() {
+    return this.children.length;
+  }
+
+  appendChild(...children: IP5Item<TChildContext>[]) {
+    return this.children.push(...children);
+  }
+
   adaptContext(parentContext: TContext): TChildContext {
     if (this._adaptContext != undefined) {
       return this._adaptContext(parentContext);
