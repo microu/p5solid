@@ -1,26 +1,17 @@
-import "./App.css";
-import SketchDiv from "./SketchDiv";
-import { steppingFeet } from "./sketches/SteppingFeet";
-import { particlesSketch } from "./sketches/particlesSketch";
-import twconf from "./twconf";
+import { P5Div } from "./p5div";
+import { sampleA } from "./p5samples/sampleA";
+import { sampleB } from "./p5samples/sampleB";
+import Header from "./ui/Header";
 
 function App() {
+  console.log("APP");
   return (
     <>
-      <h1>Vite + Solid + P5</h1>
-      <SketchDiv handler={particlesSketch({})} />
-      <br />
-      <SketchDiv
-        handler={steppingFeet({
-          colorA: twconf.color("rose-700"),
-          colorB: twconf.color("stone-300"),
-          w: 300,
-          h: 150,
-          barWidth: 6,
-          rectWidth: 6,
-          rectHeight: 2.3,
-        })}
-      />
+      <Header title="P5JS / Solid" />
+      <div class="m-auto flex flex-col justify-between w-[800px] bg-stone-300 h-96">
+        <P5Div runner={sampleA()}></P5Div>
+        <P5Div runner={sampleB()}></P5Div>
+      </div>
     </>
   );
 }
