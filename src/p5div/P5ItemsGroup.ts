@@ -4,7 +4,7 @@ import { IP5Item, IP5TimeContext, P5TimeContext } from "./P5Items";
 export class P5ItemsGroup<
   TContext extends IP5TimeContext = P5TimeContext,
   TChildContext extends IP5TimeContext = TContext
-> implements IP5Item<TContext>
+> implements IP5Item<TContext>, Iterable<IP5Item<TChildContext>>
 {
   private children: IP5Item<TChildContext>[];
   private _adaptContext: AdaptContextHook<TContext, TChildContext> | undefined;
@@ -22,6 +22,12 @@ export class P5ItemsGroup<
     this._adaptContext = options.adaptContext;
     this._preDraw = options.preDraw;
     this._postDraw = options.postDraw;
+  }
+
+  *[Symbol.iterator](): Iterator<IP5Item<TChildContext>, any, undefined> {
+    for (const child of this.children) {
+      yield child;
+    }
   }
 
   draw(p: p5, ctx: TContext): string {
