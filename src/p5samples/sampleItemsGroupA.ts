@@ -4,13 +4,13 @@ import { resolveColor } from "../twconf";
 import { IP5TimeContext, P5TimeContext } from "../p5div/P5Items";
 import { P5ItemsGroup } from "../p5div/P5ItemsGroup";
 import { colorChoices01 } from "./colorChoices";
-import { P5DataDrawer, P5Drawer } from "../p5div/P5Drawer";
+import { P5DataDrawer } from "../p5div/P5Drawer";
 import chroma from "chroma-js";
 
 export function sampleItemsGroupA(): P5Runner {
   // params
   const bgcolor = resolveColor("slate-900");
-  const nCircles = 9;
+  const nCircles = 12;
 
   // state
   const context = new P5TimeContext();
@@ -22,9 +22,9 @@ export function sampleItemsGroupA(): P5Runner {
     }
     for (const child of ig) {
       const c = (child as P5DataDrawer<TCircle>).data;
-      p.noFill()
-      p.stroke(resolveColor("red-600"))
-      p.strokeWeight(0.5)
+      p.noFill();
+      p.stroke(resolveColor("red-600"));
+      p.strokeWeight(0.5);
       p.rect(c.x - c.d / 2, c.y - c.d / 2, c.d, c.d);
     }
   }
@@ -46,17 +46,17 @@ export function sampleItemsGroupA(): P5Runner {
 
   type TCircle = { x: number; y: number; d: number };
 
-  const lastCircles: TCircle[] = [];
-  let nextCircleIndex = 0;
+  // const lastCircles: TCircle[] = [];
+  // let nextCircleIndex = 0;
 
-  function pushCircle(c: TCircle) {
-    if (lastCircles.length < nCircles) {
-      lastCircles.push(c);
-    } else {
-      lastCircles[nextCircleIndex] = c;
-    }
-    nextCircleIndex = (nextCircleIndex + 1) % nCircles;
-  }
+  // function pushCircle(c: TCircle) {
+  //   if (lastCircles.length < nCircles) {
+  //     lastCircles.push(c);
+  //   } else {
+  //     lastCircles[nextCircleIndex] = c;
+  //   }
+  //   nextCircleIndex = (nextCircleIndex + 1) % nCircles;
+  // }
 
   function findCircle(group: P5ItemsGroup, n: number = 10): TCircle {
     const canditates: TCircle[] = [];
@@ -71,9 +71,7 @@ export function sampleItemsGroupA(): P5Runner {
         bestIndex = i;
       }
       canditates.push(c);
-      console.log("BS:", bestScore, bestIndex);
     }
-    pushCircle(canditates[bestIndex]);
     return canditates[bestIndex];
   }
 
@@ -81,8 +79,10 @@ export function sampleItemsGroupA(): P5Runner {
     let score = 1_000_000;
     for (const child of group) {
       const activeCircle = (child as P5DataDrawer<TCircle>).data;
-      const distance = Math.sqrt((activeCircle.x - c.x) ** 2 + (activeCircle.y - c.y) ** 2);
-      const cscore = distance - (activeCircle.d + c.d) / 2 + Math.sqrt(c.d) * 3;
+      const distance = Math.sqrt(
+        (activeCircle.x - c.x) ** 2 + (activeCircle.y - c.y) ** 2
+      );
+      const cscore = distance - (activeCircle.d + c.d) / 2 + Math.sqrt(c.d) * 4;
       score = Math.min(score, cscore);
     }
     return score;
@@ -96,20 +96,22 @@ export function sampleItemsGroupA(): P5Runner {
   }
 
   function createItem(group: P5ItemsGroup, expiration: number) {
-    const c = findCircle(group, 16);
+    const c = findCircle(group, 25);
     let color =
       colorChoices01[Math.floor(Math.random() * colorChoices01.length)];
     let strokeColor = color;
-    if (chroma.distance(strokeColor, "white") > chroma.distance(strokeColor, "black")) {
-      strokeColor = chroma(strokeColor).brighten(1).hex()
+    if (
+      chroma.distance(strokeColor, "white") >
+      chroma.distance(strokeColor, "black")
+    ) {
+      strokeColor = chroma(strokeColor).brighten(1).hex();
     } else {
-      strokeColor = chroma(strokeColor).darken(1).hex()
+      strokeColor = chroma(strokeColor).darken(1).hex();
     }
-    
 
     return new P5DataDrawer<TCircle>(c, (p, ctx, dc) => {
       p.stroke(strokeColor);
-      p.strokeWeight(2)
+      p.strokeWeight(3);
       p.fill(color);
       p.circle(dc.x, dc.y, dc.d);
 
