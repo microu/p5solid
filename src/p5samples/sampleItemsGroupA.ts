@@ -10,7 +10,7 @@ import chroma from "chroma-js";
 export function sampleItemsGroupA(): P5Runner {
   // params
   const bgcolor = resolveColor("slate-900");
-  const nCircles = 12;
+  const nCircles = 6;
 
   // state
   const context = new P5TimeContext();
@@ -45,18 +45,6 @@ export function sampleItemsGroupA(): P5Runner {
   }
 
   type TCircle = { x: number; y: number; d: number };
-
-  // const lastCircles: TCircle[] = [];
-  // let nextCircleIndex = 0;
-
-  // function pushCircle(c: TCircle) {
-  //   if (lastCircles.length < nCircles) {
-  //     lastCircles.push(c);
-  //   } else {
-  //     lastCircles[nextCircleIndex] = c;
-  //   }
-  //   nextCircleIndex = (nextCircleIndex + 1) % nCircles;
-  // }
 
   function findCircle(group: P5ItemsGroup, n: number = 10): TCircle {
     const canditates: TCircle[] = [];
