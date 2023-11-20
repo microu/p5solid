@@ -35,12 +35,12 @@ export function sampleItemsGroupA(): P5Runner {
 
   function setup(p: p5) {
     p.createCanvas(256, 256);
+    p.frameRate(32);
   }
 
   function draw(p: p5) {
     context.draw(p);
     p.background(bgcolor);
-    p.frameRate(32);
     group.draw(p, context);
   }
 
