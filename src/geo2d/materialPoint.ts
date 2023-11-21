@@ -1,4 +1,6 @@
-export class MaterialPoint {
+import { IPoint } from "./point";
+
+export class MaterialPoint implements IPoint {
   vx: number;
   vy: number;
   m: number;
