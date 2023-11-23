@@ -3,6 +3,10 @@ export interface ITimelinePoint {
   name: string;
 }
 
+export function compareTimelinePoints(pa: ITimelinePoint, pb: ITimelinePoint) {
+  return pa.t - pb.t;
+}
+
 export interface ITimelineFrame extends ITimelinePoint {
   dur: number;
 }
