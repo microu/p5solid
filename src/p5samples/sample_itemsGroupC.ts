@@ -8,6 +8,8 @@ import { IP5TimeContext, P5TimeContext } from "../p5div/P5Items";
 import { ITimelinePoint } from "../timeline";
 import { TimelinePointSequence } from "../timeline/TimelinePointSequence";
 import chroma from "chroma-js";
+import  { easeElasticIn,  easeExpInOut, easeExpOut } from "d3-ease"
+
 export function sampleItemsGroupC(): P5Runner {
   // parameters
   const bgcolor = resolveColor("pink-950");
@@ -62,6 +64,8 @@ function createItemC(t0: number) {
   const color2 =
     colorChoices01[Math.floor(Math.random() * colorChoices01.length)];
 
+  easeElasticIn
+
   const data: TPolygonData = {
     edges: 3 + Math.floor(Math.random() * 7),
     cx: 32 + Math.random() * 180,
@@ -71,13 +75,14 @@ function createItemC(t0: number) {
     color: color1,
   };
 
-  const tlp0: TPolygonTLP = { ...data, t: t0, name: "a", d: 4 };
-  const tlp1: TPolygonTLP = { ...data, t: t0 + 1000, name: "b" };
+  const tlp0: TPolygonTLP = { ...data, t: t0, name: "a", d: data.d /4  };
+  const tlp1: TPolygonTLP = { ...data, t: t0 + 1500, name: "b" };
   const tlp2: TPolygonTLP = {
     ...data,
     t: expiration,
     name: "c",
     color: color2,
+    starCoef: data.starCoef /3
   };
   const tlp3: TPolygonTLP = {
     ...data,
@@ -102,9 +107,9 @@ function createItemC(t0: number) {
       edges: a.edges,
       cx: a.cx + k * (b.cx - a.cx),
       cy: a.cy + k * (b.cy - a.cy),
-      d: a.d + k * (b.d - a.d),
+      d: a.d + easeElasticIn(easeExpOut(k)) * (b.d - a.d),
       starCoef: a.starCoef + k * (b.starCoef - a.starCoef),
-      color: chroma.mix(a.color, b.color, k).hex(),
+      color: chroma.mix(a.color, b.color, easeExpInOut(k)).hex(),
     };
 
     // draw poly
