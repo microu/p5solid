@@ -17,23 +17,23 @@ export class TimelinePointSequence<
 
   interval(
     t: number
-  ): [p0: TPoint | undefined, p1: TPoint | undefined, k: number] {
+  ): [p0: TPoint [], p1: TPoint | undefined, k: number] {
     if (this.points.length == 0) {
-      return [undefined, undefined, 0];
+      return [[], undefined, 0];
     }
     let i = 0;
     while (i < this.points.length && t >= this.points[i].t) i += 1;
     // i>= this.points.length || t < this.points[i].t
     if (i == 0) {
-      return [undefined, this.points[0], 0];
+      return [ [], this.points[0], 0];
     } else if (i < this.points.length) {
       return [
-        this.points[i - 1],
+        this.points.slice(0,i),
         this.points[i],
         (t - this.points[i - 1].t) / (this.points[i].t - this.points[i - 1].t),
       ];
     } else {
-      return [this.points[this.points.length - 1], undefined, 0];
+      return [this.points, undefined, 0];
     }
   }
 }

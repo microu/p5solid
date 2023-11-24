@@ -2,13 +2,17 @@ import p5 from "p5";
 import { P5Runner } from "../p5div/P5Runner";
 import { resolveColor } from "../twconf";
 import { P5ItemsGroup } from "../p5div/P5ItemsGroup";
-import {P5Drawer } from "../p5div/P5Drawer";
+import { P5Drawer } from "../p5div/P5Drawer";
 import { colorChoices01 } from "./colorChoices";
 import { IP5TimeContext, P5TimeContext } from "../p5div/P5Items";
 import { ITimelinePoint } from "../timeline";
 import { TimelinePointSequence } from "../timeline/TimelinePointSequence";
-import chroma from "chroma-js";
-import  { easeElasticIn,  easeExpInOut, easeExpOut } from "d3-ease"
+import { easeElasticIn } from "d3-ease";
+import {
+  TimelineDataUpdater,
+  UpdatableRecord,
+  UpdatableRecordPoint,
+} from "../timeline/TimelineDataUpdater";
 
 export function sampleItemsGroupC(): P5Runner {
   // parameters
@@ -21,7 +25,7 @@ export function sampleItemsGroupC(): P5Runner {
 
   // group + hooks
   const group = new P5ItemsGroup({ postDraw });
-  function postDraw(ig: P5ItemsGroup, p: p5, ctx: IP5TimeContext) {
+  function postDraw(ig: P5ItemsGroup, _p: p5, ctx: IP5TimeContext) {
     while (group.length < nItems && ctx.t > nextAppendChild) {
       ig.appendChild(createItemC(ctx.t));
       nextAppendChild = ctx.t + Math.random() * 1000;
@@ -64,9 +68,9 @@ function createItemC(t0: number) {
   const color2 =
     colorChoices01[Math.floor(Math.random() * colorChoices01.length)];
 
-  easeElasticIn
+  easeElasticIn;
 
-  const data: TPolygonData = {
+  const data: UpdatableRecord = {
     edges: 3 + Math.floor(Math.random() * 7),
     cx: 32 + Math.random() * 180,
     cy: 32 + Math.random() * 180,
@@ -75,45 +79,59 @@ function createItemC(t0: number) {
     color: color1,
   };
 
-  const tlp0: TPolygonTLP = { ...data, t: t0, name: "a", d: data.d /4  };
-  const tlp1: TPolygonTLP = { ...data, t: t0 + 1500, name: "b" };
-  const tlp2: TPolygonTLP = {
+  const tlp0: UpdatableRecordPoint = {
+    ...data,
+    t: t0,
+    name: "a",
+    d: (data.d as number) / 4,
+  };
+  const tlp1: UpdatableRecordPoint = { ...data, t: t0 + 1500, name: "b" };
+  const tlp2: UpdatableRecordPoint = {
     ...data,
     t: expiration,
     name: "c",
     color: color2,
-    starCoef: data.starCoef /3
+    starCoef: (data.starCoef as number) / 3,
   };
-  const tlp3: TPolygonTLP = {
+  const tlp3: UpdatableRecordPoint = {
     ...data,
     t: expiration + 1000,
     name: "d",
-    d: data.d /2,
+    d: (data.d as number) / 2,
     color: color2 + "00",
   };
 
-  const tseq = new TimelinePointSequence([tlp0, tlp1, tlp2, tlp3]);
-
+  const tseq = new TimelinePointSequence<UpdatableRecordPoint>([
+    tlp0,
+    tlp1,
+    tlp2,
+    tlp3,
+  ]);
+  const updater = new TimelineDataUpdater(tseq, { ...data });
   return new P5Drawer((p, ctx) => {
     // handle sequence => poly
-    const [a, b, k] = tseq.interval(ctx.t);
 
-    if (a == undefined) {
-      return "";
-    } else if (b == undefined) {
-      return "!done";
-    }
-    const poly: TPolygonData = {
-      edges: a.edges,
-      cx: a.cx + k * (b.cx - a.cx),
-      cy: a.cy + k * (b.cy - a.cy),
-      d: a.d + easeElasticIn(easeExpOut(k)) * (b.d - a.d),
-      starCoef: a.starCoef + k * (b.starCoef - a.starCoef),
-      color: chroma.mix(a.color, b.color, easeExpInOut(k)).hex(),
-    };
+    const updatedData = updater.update(ctx.t);
+    const poly = updatedData as TPolygonData;
+
+    //const [aa, b, k] = tseq.interval(ctx.t);
+
+    // if (aa.length == 0) {
+    //   return "";
+    // } else if (b == undefined) {
+    //   return "!done";
+    // }
+    // const a = aa[aa.length-1]
+    // const poly: TPolygonData = {
+    //   edges: a.edges,
+    //   cx: a.cx + k * (b.cx - a.cx),
+    //   cy: a.cy + k * (b.cy - a.cy),
+    //   d: a.d + easeElasticIn(easeExpOut(k)) * (b.d - a.d),
+    //   starCoef: a.starCoef + k * (b.starCoef - a.starCoef),
+    //   color: chroma.mix(a.color, b.color, easeExpInOut(k)).hex(),
+    // };
 
     // draw poly
-    console.log("POLY:", poly);
     p.noStroke();
     p.fill(poly.color);
 
@@ -147,7 +165,7 @@ function createItemC(t0: number) {
     }
     p.endShape(p.CLOSE);
 
-    return "";
+    return updater.done(ctx.t) ? "!done" : "";
   });
 }
 
