@@ -10,37 +10,37 @@ describe("TimelinePointSequence class", function () {
     ]);
 
     let [pa, pb, k] = seq.interval(0.5);
-    expect(pa).toBeUndefined();
+    expect(pa.length).toBe(0);
     expect(pb?.name).toBe("One");
     expect(k).toBe(0);
 
     [pa, pb, k] = seq.interval(1);
-    expect(pa!.name).toBe("One");
+    expect(pa[pa.length-1].name).toBe("One");
     expect(pb!.name).toBe("Two");
     expect(k).toBe(0);
 
     [pa, pb, k] = seq.interval(1.5);
-    expect(pa!.name).toBe("One");
+    expect(pa[pa.length-1].name).toBe("One");
     expect(pb!.name).toBe("Two");
     expect(k).toBe(0.5);
 
     [pa, pb, k] = seq.interval(2);
-    expect(pa!.name).toBe("Two");
+    expect(pa[pa.length-1].name).toBe("Two");
     expect(pb!.name).toBe("Three");
     expect(k).toBe(0);
 
     [pa, pb, k] = seq.interval(2.999);
-    expect(pa!.name).toBe("Two");
+    expect(pa[pa.length-1].name).toBe("Two");
     expect(pb!.name).toBe("Three");
     expect(k).toBeCloseTo(0.999);
 
     [pa, pb, k] = seq.interval(3);
-    expect(pa!.name).toBe("Three");
+    expect(pa[pa.length-1].name).toBe("Three");
     expect(pb!).toBeUndefined();
     expect(k).toBeCloseTo(0);
 
     [pa, pb, k] = seq.interval(3.14);
-    expect(pa!.name).toBe("Three");
+    expect(pa[pa.length-1].name).toBe("Three");
     expect(pb!).toBeUndefined();
     expect(k).toBeCloseTo(0);
   });
