@@ -22,15 +22,27 @@ export class TickableValue<T = number>
   }
 
   addTarget(target: ITargetValue<T>) {
-    if (target.t > this.t) {
-      this.targets.push(target);
-      this.b = undefined;
+    if (this.a != undefined && target.t <= this.t) {
+      // ignore
+      return;
+    }
+    this.targets.push(target);
+
+    if (this.a == undefined) return;
+
+    if (this.b == undefined) {
+      this.a.t = this.t;
+      this.b = target;
+    } else if (target.t < this.b.t) {
+      this.a = { v: this.v, t: this.t };
+      this.b = target;
     }
   }
 
   tick(t: number): void {
     const prevt = this.t;
     super.tick(t);
+
     if (this.a == undefined) {
       this.a = { v: this.v, t };
       return;
@@ -39,6 +51,7 @@ export class TickableValue<T = number>
     this._updateTargets(prevt, t);
 
     if (this.b == undefined) {
+      this.v = this.a.v;
       return;
     }
 
@@ -56,26 +69,32 @@ export class TickableValue<T = number>
   }
 
   private _updateTargets(prevt: number, t: number) {
-    if (this.b != undefined && t <= this.b.t) {
-      return;
+    if (this.b == undefined) {
+      this.a = { t: prevt, v: this.v };
+      this.b = this._findNearestTarget(t);
+    } else if (t >= this.b.t) {
+      this.a = this.b;
+      this.b =  this._findNearestTarget(t)
     }
+    console.log("B:", this.b);
+  }
 
-    this.a = { t: prevt, v: this.v };
-
-    this.b = undefined;
+  private _findNearestTarget(t: number): ITargetValue<T> | undefined {
+    let nearestTarget = undefined;
     for (let i = this.targets.length - 1; i >= 0; i -= 1) {
       const target = this.targets[i];
       if (target.t <= t) {
         this.targets.splice(i, 1);
       } else {
-        if (this.b == undefined) {
-          this.b = target;
-        } else if (target.t < this.b.t) {
-          this.b = target;
+        if (nearestTarget == undefined) {
+          nearestTarget = target;
+        } else if (target.t < nearestTarget.t) {
+          nearestTarget = target;
         }
       }
     }
-    console.log("B:", this.b);
+
+    return nearestTarget;
   }
 
   value(): T {

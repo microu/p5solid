@@ -9,8 +9,8 @@ import { TickableValue } from "../ticks/values";
 
 export function sampleItemsGroupD(): P5Runner {
   // parameters
-  const bgcolor = resolveColor("pink-950");
-  const nItems = 5;
+  const bgcolor = resolveColor("slate-900");
+  const nItems = 7;
 
   // state
   const context = new P5TimeContext();
@@ -42,27 +42,43 @@ export function sampleItemsGroupD(): P5Runner {
 function createItem(t: number) {
   const lineColor =
     colorChoices01[Math.floor(Math.random() * colorChoices01.length)];
-  const x = 28 + Math.random() * 228;
-  const cy = new TickableValue(24)
-  const ta = t+ 1000 + Math.random()*3000;
-  const tb = ta + 1000 + Math.random()*3000;
-  const tc = tb + 500 + Math.random()*1000;
-  
-  cy.addTarget({t: t+ ta, v:256})
-  cy.addTarget({t: t+ tb, v:0})
-  cy.addTarget({t: t+ tc, v:128})
+  const vx = new TickableValue(28 + Math.random() * 228);
+  const vy = new TickableValue(128);
+  const endOfLife = t+ 5000 + Math.random()*12000 
+
+  let nextEvent = t+ Math.random()* 1500
 
   return new P5Drawer((p, ctx) => {
-    cy.tick(ctx.t)
-    p.noFill()
-    p.stroke(lineColor)
-    p.strokeWeight(2)
-    p.line(x, 0, x, 256)
+    if (ctx.t > nextEvent) {
+      const dt = Math.random() * 3000;
+      let y = Math.random()*256;
+      while (Math.abs(y - vy.value()) < 50) {
+        y = Math.random()*256
+      }
+      vy.addTarget({t: ctx.t + dt, v: y })
+      
+      let x = Math.random()*256;
+      while (Math.abs(x - vx.value()) < 10 || Math.abs(x - vx.value()) > 80) {
+        x = Math.random()*256
+      }
+      vx.addTarget({t: ctx.t + dt, v: x })      
+      nextEvent += dt + 1000 * Math.random()
 
-    p.noStroke()
-    p.fill(lineColor)
-    p.circle(x, cy.value(), 12)
+    }
 
-    return "";
+    vx.tick(ctx.t);
+    vy.tick(ctx.t);
+
+
+    p.noFill();
+    p.stroke(lineColor);
+    p.strokeWeight(2);
+    p.line(vx.value(), 0, vx.value(), 256);
+
+    p.noStroke();
+    p.fill(lineColor);
+    p.circle(vx.value(), vy.value(), 12);
+
+    return ctx.t < endOfLife ?"" : "!done";
   });
 }
