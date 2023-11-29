@@ -30,8 +30,14 @@ const DEFAULT_TClockBaseOptions: TClockBaseOptions = {
 };
 
 export class ClockBase implements IClock, ITickable {
-  private _state: "" | "initialized" | "started" | "unpaused" | "paused" = "";
- 
+  private _state:
+    | ""
+    | "initialized"
+    | "started"
+    | "pause_requested"
+    | "paused"
+    | "unpaused" = "";
+
   private _tick0: number = 0; // clock origin (ticker scale)
   private _t0: number = 0; // clock origin (clock scale)
   private _scale: number = 1;
@@ -50,24 +56,28 @@ export class ClockBase implements IClock, ITickable {
       this._t0 = this.options.t0;
       this._state = "initialized";
     }
-    
+
     if (this._state == "unpaused") {
       this._tick0 = t;
       this._t0 = this._t;
       this._state = "started";
     }
 
+    if (this._state == "pause_requested") {
+      this._state = "paused";
+    }
+
     if (t >= this._tick0) {
       const new_t = this._t0 + (t - this._tick0) * this._scale;
-      if (this.started && new_t <= this.t) {
+      if (this.started && new_t < this.t) {
         throw new Error(
-          `Tick times must be stricly increasing but  ${new_t} <=  ${this._t}`
+          `Tick times must be increasing but  ${new_t} <  ${this._t}`
         );
       }
       if (!this.paused) {
         this._t = new_t;
+        this._state = "started";
       }
-      this._state = "started";
     }
   }
 
@@ -76,15 +86,27 @@ export class ClockBase implements IClock, ITickable {
   }
 
   get started() {
-    return this._state == "started";
+    return this._state != "" && this._state != "initialized";
   }
 
   get paused() {
-    return this._state == "paused";
+    console.log("GET PAUSED", this._state);
+    return this._state == "paused" || this._state == "pause_requested";
   }
+
   set paused(v: boolean) {
     if (this.paused == v) return;
-    this._state = v ? "paused" : "unpaused"
+
+    if (v) {
+      this._state = "pause_requested";
+    } else {
+      this._state = this._state == "pause_requested" ? "started" : "unpaused";
+    }
+    console.log("STATE CHANGED", this._state)
+  }
+
+  get state() {
+    return this._state;
   }
 }
 
