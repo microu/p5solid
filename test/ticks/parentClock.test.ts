@@ -19,8 +19,8 @@ describe("ParentClock instance", function () {
     expect(pc.t).toBe(150);
   });
 
-  test("With t0 option", function () {
-    const pc = new ParentClock({ t0: 5000 });
+  test("With tick0 option", function () {
+    const pc = new ParentClock({ tick0: 5000 });
     expect(pc.started).toBe(false);
 
     pc.tick(1000);
@@ -57,7 +57,7 @@ describe("ParentClock instance", function () {
   test("Children update", function () {
     const pc = new ParentClock();
     const cc1 = new ParentClock({ scale: 1 / 10 });
-    const cc2 = new ParentClock({ t0: 2000, scale: 1 / 1000 });
+    const cc2 = new ParentClock({ tick0: 2000, scale: 1 / 1000 });
     pc.addChild(cc1);
     pc.addChild(cc2);
 
