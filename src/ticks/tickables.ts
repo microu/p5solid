@@ -90,7 +90,7 @@ export class ClockBase implements IClock, ITickable {
   }
 
   get paused() {
-    console.log("GET PAUSED", this._state);
+
     return this._state == "paused" || this._state == "pause_requested";
   }
 
@@ -102,7 +102,7 @@ export class ClockBase implements IClock, ITickable {
     } else {
       this._state = this._state == "pause_requested" ? "started" : "unpaused";
     }
-    console.log("STATE CHANGED", this._state)
+
   }
 
   get state() {
@@ -111,22 +111,25 @@ export class ClockBase implements IClock, ITickable {
 }
 
 export type TParentClockOptions = TClockBaseOptions;
-const DEFAULT_TParentClockOptions = DEFAULT_TClockBaseOptions;
 
-export class ParentClock implements ITickable, IParentClock, IClock {
-  private _t: number;
-  private _state: "" | "initialized" | "started" = "";
-  private _parent_t = 0;
-  private _tick0: number = 0;
+export class ParentClock
+  extends ClockBase
+  implements ITickable, IParentClock, IClock
+{
   private _children: ITickable[] = [];
 
-  options: TParentClockOptions;
-  private _paused = false;
-
   constructor(options: Partial<TParentClockOptions> = {}) {
-    this.options = { ...DEFAULT_TParentClockOptions, ...options };
-    this._t = 0;
+    super(options);
   }
+
+
+  tick(t: number): void {
+    super.tick(t)
+    for (const child of this._children) {
+      child.tick(this.t)
+    }
+  }
+
 
   addChild(child: ITickable): void {
     this._children.push(child);
@@ -136,49 +139,5 @@ export class ParentClock implements ITickable, IParentClock, IClock {
     if (pos >= 0) {
       this._children.splice(pos, 1);
     }
-  }
-
-  tick(t: number): void {
-    if (this._state == "") {
-      this._tick0 = this.options.tick0 ?? t;
-      this._state = "initialized";
-    }
-
-    if (this.started && t <= this._parent_t) {
-      throw new Error(
-        `Tick times must be stricly increasing : ${t} <=  ${this._parent_t}`
-      );
-    }
-
-    if (t >= this._tick0) {
-      const ct = (t - this._tick0) * this.options.scale;
-      this._update(t, ct);
-    }
-  }
-
-  private _update(parent_t: number, t: number) {
-    this._state = "started";
-    this._parent_t = parent_t;
-    this._t = t;
-
-    for (const child of this._children) {
-      child.tick(this.t);
-    }
-  }
-
-  get t() {
-    return this._t;
-  }
-  get started() {
-    return this._state == "started";
-  }
-
-  get paused() {
-    return this._paused;
-  }
-
-  set paused(v: boolean) {
-    if (this._paused == v) return;
-    this._paused = v;
   }
 }

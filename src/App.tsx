@@ -4,7 +4,6 @@ import { sampleB } from "./p5samples/sampleB";
 import Header from "./ui/Header";
 
 function App() {
-  console.log("APP");
   return (
     <>
       <Header title="P5JS / Solid" />

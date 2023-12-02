@@ -196,7 +196,6 @@ describe("Running/pausing ClockBase", function () {
     expect(cb.t).toBe(1000)
     
     cb.paused = false;
-    console.log("PAUSED?", cb.state)
     
     cb.tick(4000)
     expect(cb.started).toBe(true);

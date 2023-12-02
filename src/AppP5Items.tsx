@@ -6,7 +6,7 @@ import { sampleItemsGroupD } from "./p5samples/sample_itemsGroupD";
 import Header from "./ui/Header";
 
 function AppP5Items() {
-  console.log("APP");
+
   return (
     <>
       <Header title="P5JS / Solid - P5Items" />

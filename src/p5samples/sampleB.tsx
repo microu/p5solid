@@ -11,7 +11,7 @@ type TLine = {
 };
 
 export const sampleB = () => {
-  console.log("SAMPLE B");
+
   // parameters
   const bgcolor = resolveColor("slate-800");
 

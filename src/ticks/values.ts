@@ -1,6 +1,6 @@
 import { ClockBase, IClock, ITickable } from ".";
 
-export interface ITargetValue<T> {
+export interface IValueAt<T> {
   t: number;
   v: T;
 }
@@ -11,8 +11,8 @@ export class TickableValue<T = number>
 {
   private v: T;
 
-  private a: ITargetValue<T> | undefined = undefined;
-  private b: ITargetValue<T> | undefined = undefined;
+  private a: IValueAt<T> | undefined = undefined;
+  private b: IValueAt<T> | undefined = undefined;
 
   private targets: { t: number; v: T }[] = [];
 
@@ -21,7 +21,7 @@ export class TickableValue<T = number>
     this.v = v0;
   }
 
-  addTarget(target: ITargetValue<T>) {
+  addTarget(target: IValueAt<T>) {
     if (this.a != undefined && target.t <= this.t) {
       // ignore
       return;
@@ -56,7 +56,6 @@ export class TickableValue<T = number>
     }
 
     const k = (t - this.a.t) / (this.b.t - this.a.t);
-    console.log("K:", k);
     this.v = this.interpolate(this.a.v, this.b.v, k);
   }
 
@@ -76,10 +75,10 @@ export class TickableValue<T = number>
       this.a = this.b;
       this.b =  this._findNearestTarget(t)
     }
-    console.log("B:", this.b);
+
   }
 
-  private _findNearestTarget(t: number): ITargetValue<T> | undefined {
+  private _findNearestTarget(t: number): IValueAt<T> | undefined {
     let nearestTarget = undefined;
     for (let i = this.targets.length - 1; i >= 0; i -= 1) {
       const target = this.targets[i];

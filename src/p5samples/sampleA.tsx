@@ -3,7 +3,8 @@ import { resolveColor } from "../twconf";
 import { P5Runner } from "../p5div/P5Runner";
 
 export const sampleA = () => {
-  console.log("SAMPLE A");
+
+  
   // parameters
   const bgcolor = resolveColor("slate-800");
   const colorHueList = [
@@ -19,7 +20,7 @@ export const sampleA = () => {
   const squareSize = 40;
   const squareCount = 9;
   // state
-  console.log("SET STATE");
+ 
   let t0 = 0;
   let colorHueIndex = 0;
   let colorHueChange = -10_000;

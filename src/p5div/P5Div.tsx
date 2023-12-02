@@ -19,8 +19,7 @@ export const P5Div: Component<TProps> = (props) => {
   let divElt: HTMLDivElement | undefined;
 
   const r = <div ref={divElt} class={classes()}></div>;
-  console.log("DIV:", divElt);
-  props.runner.run(divElt);
+  props.runner.run(divElt!);
   return r;
 };
 
