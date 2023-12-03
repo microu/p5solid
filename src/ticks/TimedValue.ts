@@ -48,9 +48,10 @@ export class TimedValue<V> implements ITimedValue<V> {
     return this._interpolate(a!, b!, t);
   }
 
-  private _interpolate(a: IValueAt<V>, b: IValueAt<V>, t: number): V {
+  private _interpolate(a: IKeyPoint<V>, b: IKeyPoint<V>, t: number): V {
+    const interpolator = a.interpolator ?? this.interpolator;
     const k = (t - a.t) / (b.t - a.t);
-    return this.interpolator(a.v, b.v, k);
+    return interpolator(a.v, b.v, k);
   }
 
   private findInterval(
