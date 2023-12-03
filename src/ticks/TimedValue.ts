@@ -6,6 +6,10 @@ export interface ITimedValue<V> {
 
 export type ITimedValueInterpolator<V> = (va: V, vb: V, k: number) => V;
 
+export interface IKeyPoint<V> extends IValueAt<V> {
+  interpolator? : ITimedValueInterpolator<V>
+}
+
 function defaultInterpolator<V>(va: V, vb: V, k: number): V {
   if (typeof va == "number" && typeof vb == "number") {
     return (va + k * (vb - va)) as V;
@@ -15,11 +19,11 @@ function defaultInterpolator<V>(va: V, vb: V, k: number): V {
 }
 
 export class TimedValue<V> implements ITimedValue<V> {
-  private keyPoints: IValueAt<V>[] = [];
+  private keyPoints: IKeyPoint<V>[] = [];
   private interpolator: ITimedValueInterpolator<V>;
 
   constructor(
-    keyPoints: IValueAt<V>[] = [],
+    keyPoints: IKeyPoint<V>[] = [],
     interpolator?: ITimedValueInterpolator<V>
   ) {
     this.keyPoints = [...keyPoints];
