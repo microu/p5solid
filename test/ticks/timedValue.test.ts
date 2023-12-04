@@ -61,7 +61,7 @@ describe("Timed value", function () {
     expect(tv.v(10)).toBe(700);
     expect(tv.v(100)).toBe(700);
 
-    checkSinInOutInterpolation(tv, keyPoints[0], keyPoints[1], 10_000);
+    checkSinInOutInterpolation(tv, keyPoints[0], keyPoints[1], 1000);
     checkSinInOutInterpolation(tv, keyPoints[1], keyPoints[2], 100);
     checkSinInOutInterpolation(tv, keyPoints[2], keyPoints[3]);
   });
@@ -77,6 +77,67 @@ describe("Timed value", function () {
     checkLinearInterpolation(tv, keyPoints[0], keyPoints[1], 1000);
     checkSinInOutInterpolation(tv, keyPoints[1], keyPoints[2], 1000);
     checkLinearInterpolation(tv, keyPoints[2], keyPoints[3], 1000);
+  });
+
+  test("addKeyPoint method - add in an interval", function () {
+    const keyPoints = [
+      { t: 10, v: 100 },
+      { t: 20, v: 0 },
+      { t: 30, v: 200 },
+      { t: 40, v: 300 },
+    ];
+    let tv = new TimedValue(keyPoints);
+    checkLinearInterpolation(tv, keyPoints[0], keyPoints[1]);
+    checkLinearInterpolation(tv, keyPoints[1], keyPoints[2]);
+    checkLinearInterpolation(tv, keyPoints[2], keyPoints[3]);
+
+    tv.addKeyPoint({ t: 25, v: 400 });
+    checkLinearInterpolation(tv, keyPoints[0], keyPoints[1]);
+    checkLinearInterpolation(tv, keyPoints[1], { t: 25, v: 400 });
+    checkLinearInterpolation(tv, { t: 25, v: 400 }, keyPoints[2]);
+    checkLinearInterpolation(tv, keyPoints[2], keyPoints[3]);
+  });
+
+  test("addKeyPoint method - add at end", function () {
+    const keyPoints = [
+      { t: 10, v: 100 },
+      { t: 20, v: 0 },
+      { t: 30, v: 200 },
+      { t: 40, v: 300 },
+    ];
+    let tv = new TimedValue(keyPoints);
+    checkLinearInterpolation(tv, keyPoints[0], keyPoints[1]);
+    checkLinearInterpolation(tv, keyPoints[1], keyPoints[2]);
+    checkLinearInterpolation(tv, keyPoints[2], keyPoints[3]);
+
+    tv.addKeyPoint({ t: 50, v: 500 });
+    checkLinearInterpolation(tv, keyPoints[0], keyPoints[1]);
+    checkLinearInterpolation(tv, keyPoints[1], keyPoints[2]);
+    checkLinearInterpolation(tv, keyPoints[2], keyPoints[3]);
+    checkLinearInterpolation(tv, keyPoints[3], { t: 50, v: 500 });
+    expect(tv.v(50)).toBe(500);
+    expect(tv.v(500)).toBe(500);
+  });
+
+  test("addKeyPoint method - add at begining", function () {
+    const keyPoints = [
+      { t: 10, v: 100 },
+      { t: 20, v: 0 },
+      { t: 30, v: 200 },
+      { t: 40, v: 300 },
+    ];
+    let tv = new TimedValue(keyPoints);
+    checkLinearInterpolation(tv, keyPoints[0], keyPoints[1]);
+    checkLinearInterpolation(tv, keyPoints[1], keyPoints[2]);
+    checkLinearInterpolation(tv, keyPoints[2], keyPoints[3]);
+
+    tv.addKeyPoint({ t: 0, v: 10 });
+    expect(tv.v(-100)).toBe(10);
+    expect(tv.v(-0.1)).toBe(10);
+    checkLinearInterpolation(tv, { t: 0, v: 10 }, keyPoints[0]);
+    checkLinearInterpolation(tv, keyPoints[0], keyPoints[1]);
+    checkLinearInterpolation(tv, keyPoints[1], keyPoints[2]);
+    checkLinearInterpolation(tv, keyPoints[2], keyPoints[3]);
   });
 });
 

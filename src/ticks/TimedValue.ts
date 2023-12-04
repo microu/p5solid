@@ -7,7 +7,7 @@ export interface ITimedValue<V> {
 export type ITimedValueInterpolator<V> = (va: V, vb: V, k: number) => V;
 
 export interface IKeyPoint<V> extends IValueAt<V> {
-  interpolator? : ITimedValueInterpolator<V>
+  interpolator?: ITimedValueInterpolator<V>;
 }
 
 function defaultInterpolator<V>(va: V, vb: V, k: number): V {
@@ -32,19 +32,37 @@ export class TimedValue<V> implements ITimedValue<V> {
   }
 
   v(t: number): V {
-    const [a, b] = this.findInterval(t);
-    if (a == undefined && b == undefined) {
+    const [ia, ib] = this.findInterval(t);
+
+    if (ia < 0 && ib < 0) {
       throw new Error(`No key point defined`);
     }
 
-    if (a == undefined && b != undefined) {
-      return b?.v;
+    if (ia < 0 && ib >= 0) {
+      return this.keyPoints[ib].v;
     }
-    if (b == undefined && a != undefined) {
-      return a?.v;
+    if (ib < 0 && ia >= 0) {
+      return this.keyPoints[ia].v;
     }
 
-    return this._interpolate(a!, b!, t);
+    return this._interpolate(this.keyPoints[ia], this.keyPoints[ib], t);
+  }
+
+  addKeyPoint(kp: IKeyPoint<V>) {
+    const [ia, ib] = this.findInterval(kp.t);
+    if (ib < 0) {
+      kp;
+      this.keyPoints.push(kp);
+      return;
+    }
+
+    if (ia < 0) {
+      this.keyPoints.splice(0, 0, kp);
+      return;
+    }
+
+    this.keyPoints.splice(ib, 0, kp);
+    console.log("KP:", this.keyPoints)
   }
 
   private _interpolate(a: IKeyPoint<V>, b: IKeyPoint<V>, t: number): V {
@@ -53,23 +71,23 @@ export class TimedValue<V> implements ITimedValue<V> {
     return interpolator(a.v, b.v, k);
   }
 
-  private findInterval(
-    t: number
-  ): [kpa: IValueAt<V> | undefined, kpb: IValueAt<V> | undefined] {
-    if (this.keyPoints.length == 0) return [undefined, undefined];
+  private findInterval(t: number): [ia: number, ib: number] {
+    if (this.keyPoints.length == 0) return [-1, -1];
 
     if (t < this.keyPoints[0].t) {
-      return [undefined, this.keyPoints[0]];
+      return [-1, 0];
     }
 
     if (t >= this.keyPoints[this.keyPoints.length - 1].t) {
-      return [this.keyPoints[this.keyPoints.length - 1], undefined];
+      return [this.keyPoints.length - 1, -1];
     }
 
     let i = 0;
     while (i < this.keyPoints.length && t >= this.keyPoints[i].t) {
       i += 1;
     }
-    return [this.keyPoints[i - 1], this.keyPoints[i]];
+    return [i - 1, i];
   }
 }
+
+export class TimedNumber extends TimedValue<number> {}
