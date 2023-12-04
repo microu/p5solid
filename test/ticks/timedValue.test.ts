@@ -1,5 +1,5 @@
 import { expect, test, describe, it } from "vitest";
-import { TimedValue } from "../../src/ticks/TimedValue";
+import { IKeyPoint, TimedValue } from "../../src/ticks/TimedValue";
 
 describe("Timed value", function () {
   test("Basic usage with numbers", function () {
@@ -9,18 +9,8 @@ describe("Timed value", function () {
       { t: 1, v: 100 },
     ]);
 
-    expect(tv.v(0)).toBe(100);
-    expect(tv.v(3.1)).toBe(400);
-
-    expect(tv.v(1)).toBe(100);
-    expect(tv.v(2)).toBe(200);
-    expect(tv.v(3)).toBe(400);
-
-    expect(tv.v(1.1)).toBeCloseTo(110);
-    expect(tv.v(1.5)).toBeCloseTo(150);
-
-    expect(tv.v(2.5)).toBeCloseTo(300);
-    expect(tv.v(2.75)).toBeCloseTo(350);
+    checkLinearInterpolation(tv, { t: 1, v: 100 }, { t: 2, v: 200 });
+    checkLinearInterpolation(tv, { t: 2, v: 200 }, { t: 3, v: 400 });
   });
 
   test("Basic usage with strings", function () {
@@ -49,22 +39,20 @@ describe("Timed value", function () {
     expect(tv.v(9)).toBe("ten");
   });
 
-  test("Basic usage with custom interpolator", function () {
-    function customInterpolator(a: number, b: number, k: number): number {
-      const theta = -Math.PI / 2 + k * Math.PI;
-      const kk = (1 + Math.sin(theta)) / 2;
-      return a + kk * (b - a);
-    }
+  function sinInOutInterpolator(a: number, b: number, k: number): number {
+    const theta = -Math.PI / 2 + k * Math.PI;
+    const kk = (1 + Math.sin(theta)) / 2;
+    return a + kk * (b - a);
+  }
 
-    const tv = new TimedValue(
-      [
-        { t: 1, v: 0 },
-        { t: 2, v: 500 },
-        { t: 3, v: 600 },
-        { t: 10, v: 700 },
-      ],
-      customInterpolator
-    );
+  test("Basic usage with custom interpolator", function () {
+    const keyPoints = [
+      { t: 1, v: 0 },
+      { t: 2, v: 500 },
+      { t: 3, v: 600 },
+      { t: 10, v: 700 },
+    ];
+    const tv = new TimedValue(keyPoints, sinInOutInterpolator);
 
     expect(tv.v(-1)).toBe(0);
     expect(tv.v(1)).toBe(0);
@@ -72,30 +60,71 @@ describe("Timed value", function () {
     expect(tv.v(3)).toBe(600);
     expect(tv.v(10)).toBe(700);
     expect(tv.v(100)).toBe(700);
-    
-    // first half below linear interpolation
-    expect(tv.v(1.1)).toBeGreaterThan(0)
-    expect(tv.v(1.1)).toBeLessThan(50)
 
-    expect(tv.v(1.4)).toBeGreaterThan(0)
-    expect(tv.v(1.4)).toBeLessThan(200)
+    checkSinInOutInterpolation(tv, keyPoints[0], keyPoints[1], 10_000);
+    checkSinInOutInterpolation(tv, keyPoints[1], keyPoints[2], 100);
+    checkSinInOutInterpolation(tv, keyPoints[2], keyPoints[3]);
+  });
 
-    // should be half in the middle    
-    expect(tv.v(1.5)).toBeCloseTo(250)
-
-    // first half above linear interpolation
-    expect(tv.v(1.6)).toBeLessThan(500)
-    expect(tv.v(1.6)).toBeGreaterThan(300)
-    expect(tv.v(1.9)).toBeLessThan(500)
-    expect(tv.v(1.9)).toBeGreaterThan(450)
-
-    // check middle point
-    expect(tv.v(2.5)).toBeCloseTo(550)
-    expect(tv.v(6.5)).toBeCloseTo(650)
-
-
-
-
-
+  test("Basic usage with custom interpolator at a given checkpoint", function () {
+    const keyPoints = [
+      { t: 1, v: 30 },
+      { t: 11, v: 500, interpolator: sinInOutInterpolator },
+      { t: 111, v: 600 },
+      { t: 1111, v: 700 },
+    ];
+    const tv = new TimedValue(keyPoints);
+    checkLinearInterpolation(tv, keyPoints[0], keyPoints[1], 1000);
+    checkSinInOutInterpolation(tv, keyPoints[1], keyPoints[2], 1000);
+    checkLinearInterpolation(tv, keyPoints[2], keyPoints[3], 1000);
   });
 });
+
+function checkSinInOutInterpolation(
+  tv: TimedValue<number>,
+  a: IKeyPoint<number>,
+  b: IKeyPoint<number>,
+  nChecks = 10
+) {
+  expect(tv.v(a.t)).toBe(a.v);
+  expect(tv.v(b.t)).toBe(b.v);
+
+  const m = { t: (a.t + b.t) / 2, v: (a.v + b.v) / 2 };
+  expect(tv.v(m.t)).toBeCloseTo(m.v);
+  // first half below linear interpolation
+  for (let i = 1; i <= nChecks; i += 1) {
+    const k = i / (nChecks + 1);
+    const t = a.t + k * (m.t - a.t);
+    const linearv = a.v + k * (m.v - a.v);
+    expect(tv.v(t)).toBeLessThan(linearv);
+  }
+
+  // fsecond half above linear interpolation
+  for (let i = 1; i <= nChecks; i += 1) {
+    const k = i / (nChecks + 1);
+    const t = m.t + k * (b.t - m.t);
+    const linearv = m.v + k * (b.v - m.v);
+    expect(tv.v(t)).toBeGreaterThan(linearv);
+  }
+}
+
+function checkLinearInterpolation(
+  tv: TimedValue<number>,
+  a: IKeyPoint<number>,
+  b: IKeyPoint<number>,
+  nChecks = 20
+) {
+  expect(tv.v(a.t)).toBe(a.v);
+  expect(tv.v(b.t)).toBe(b.v);
+
+  const m = { t: (a.t + b.t) / 2, v: (a.v + b.v) / 2 };
+  expect(tv.v(m.t)).toBeCloseTo(m.v);
+
+  // first half below linear interpolation
+  for (let i = 1; i <= nChecks; i += 1) {
+    const k = i / (nChecks + 1);
+    const t = a.t + k * (b.t - a.t);
+    const linearv = a.v + k * (b.v - a.v);
+    expect(tv.v(t)).toBeCloseTo(linearv);
+  }
+}

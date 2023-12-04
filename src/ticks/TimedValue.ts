@@ -33,7 +33,6 @@ export class TimedValue<V> implements ITimedValue<V> {
 
   v(t: number): V {
     const [a, b] = this.findInterval(t);
-    console.log("[a, b]", a, b);
     if (a == undefined && b == undefined) {
       throw new Error(`No key point defined`);
     }
@@ -60,12 +59,10 @@ export class TimedValue<V> implements ITimedValue<V> {
     if (this.keyPoints.length == 0) return [undefined, undefined];
 
     if (t < this.keyPoints[0].t) {
-      console.log("BEFORE");
       return [undefined, this.keyPoints[0]];
     }
 
     if (t >= this.keyPoints[this.keyPoints.length - 1].t) {
-      console.log("AFTER");
       return [this.keyPoints[this.keyPoints.length - 1], undefined];
     }
 
@@ -73,7 +70,6 @@ export class TimedValue<V> implements ITimedValue<V> {
     while (i < this.keyPoints.length && t >= this.keyPoints[i].t) {
       i += 1;
     }
-    console.log("INTERVAL", i);
     return [this.keyPoints[i - 1], this.keyPoints[i]];
   }
 }
