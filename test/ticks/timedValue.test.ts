@@ -139,6 +139,65 @@ describe("Timed value", function () {
     checkLinearInterpolation(tv, keyPoints[1], keyPoints[2]);
     checkLinearInterpolation(tv, keyPoints[2], keyPoints[3]);
   });
+
+  test("insertKeyPoint method - changes nothing with linear interpolation", function () {
+    const keyPoints = [
+      { t: 10, v: 100 },
+      { t: 20, v: 0 },
+      { t: 30, v: 200 },
+      { t: 40, v: 300 },
+    ];
+
+    const tv = new TimedValue(keyPoints);
+    expect(tv.v(0)).toBe(100);
+    checkLinearInterpolation(tv, keyPoints[0], keyPoints[1]);
+    checkLinearInterpolation(tv, keyPoints[1], keyPoints[2]);
+    checkLinearInterpolation(tv, keyPoints[2], keyPoints[3]);
+    expect(tv.v(100)).toBe(300);
+
+    tv.insertKeyPoint({ t: 5 });
+    tv.insertKeyPoint({ t: 15 });
+    tv.insertKeyPoint({ t: 25 });
+    tv.insertKeyPoint({ t: 35 });
+    tv.insertKeyPoint({ t: 45 });
+
+    expect(tv.v(0)).toBe(100);
+    checkLinearInterpolation(tv, keyPoints[0], keyPoints[1]);
+    checkLinearInterpolation(tv, keyPoints[1], keyPoints[2]);
+    checkLinearInterpolation(tv, keyPoints[2], keyPoints[3]);
+    expect(tv.v(100)).toBe(300);
+  });
+
+  test("insertKeyPoint method - fix value at a given time + add keypoint after", function () {
+    const keyPoints = [
+      { t: 10, v: 1 },
+      { t: 20, v: 3 },
+      { t: 30, v: 5 },
+      { t: 40, v: 7 },
+    ];
+
+    const tv = new TimedValue(keyPoints);
+    expect(tv.v(0)).toBe(1);
+    checkLinearInterpolation(tv, keyPoints[0], keyPoints[1]);
+    checkLinearInterpolation(tv, keyPoints[1], keyPoints[2]);
+    checkLinearInterpolation(tv, keyPoints[2], keyPoints[3]);
+    expect(tv.v(100)).toBe(7);
+
+    tv.insertKeyPoint({ t: 15 }); // v:2
+    tv.addKeyPoint({ t: 16, v: 16 }); // v:2
+    tv.insertKeyPoint({ t: 45 }); // v:7
+    tv.addKeyPoint({ t: 50, v: 10 });
+
+    expect(tv.v(0)).toBe(1);
+    checkLinearInterpolation(tv, keyPoints[0], { t: 15, v: 2 });
+    checkLinearInterpolation(tv, { t: 15, v: 2 }, { t: 16, v: 16 });
+    checkLinearInterpolation(tv, { t: 16, v: 16 }, keyPoints[1]);
+    checkLinearInterpolation(tv, keyPoints[1], keyPoints[2]);
+    checkLinearInterpolation(tv, keyPoints[2], keyPoints[3]);
+    checkLinearInterpolation(tv, keyPoints[3], { t: 45, v: 7 });
+    checkLinearInterpolation(tv, { t: 45, v: 7 }, { t: 50, v: 10 });
+    expect(tv.v(100)).toBe(10);
+  });
 });
 
 function checkSinInOutInterpolation(
