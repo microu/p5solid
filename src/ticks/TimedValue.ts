@@ -62,7 +62,21 @@ export class TimedValue<V> implements ITimedValue<V> {
     }
 
     this.keyPoints.splice(ib, 0, kp);
-    console.log("KP:", this.keyPoints)
+    console.log("KP:", this.keyPoints);
+  }
+
+  insertKeyPoint(
+    kp: Omit<IKeyPoint<V>, "v">,
+    interpolatorBefore?: ITimedValueInterpolator<V>
+  ) {
+    if (interpolatorBefore != undefined) {
+      const [ia, _ib] = this.findInterval(kp.t);
+      if (ia >= 0) {
+        this.keyPoints[ia].interpolator = interpolatorBefore;
+      }
+    }
+    const v = this.v(kp.t);
+    this.addKeyPoint({ ...kp, v });
   }
 
   private _interpolate(a: IKeyPoint<V>, b: IKeyPoint<V>, t: number): V {
