@@ -1,5 +1,5 @@
 import { expect, test, describe, it } from "vitest";
-import { IKeyPoint, TimedValue } from "../../src/ticks/TimedValue";
+import { IKeyPoint, TimedValue, sinInOutInterpolator } from "../../src/ticks/TimedValue";
 
 describe("Timed value", function () {
   test("Basic usage with numbers", function () {
@@ -39,11 +39,6 @@ describe("Timed value", function () {
     expect(tv.v(9)).toBe("ten");
   });
 
-  function sinInOutInterpolator(a: number, b: number, k: number): number {
-    const theta = -Math.PI / 2 + k * Math.PI;
-    const kk = (1 + Math.sin(theta)) / 2;
-    return a + kk * (b - a);
-  }
 
   test("Basic usage with custom interpolator", function () {
     const keyPoints = [

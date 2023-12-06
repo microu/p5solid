@@ -44,18 +44,18 @@ export class TickableValue<T = number>
     super.tick(t);
 
     if (this.a == undefined) {
-      this.a = { v: this.v, t };
+      this.a = { v: this.v, t:this.t };
       return;
     }
 
-    this._updateTargets(prevt, t);
+    this._updateTargets(prevt, this.t);
 
     if (this.b == undefined) {
       this.v = this.a.v;
       return;
     }
 
-    const k = (t - this.a.t) / (this.b.t - this.a.t);
+    const k = (this.t - this.a.t) / (this.b.t - this.a.t);
     this.v = this.interpolate(this.a.v, this.b.v, k);
   }
 

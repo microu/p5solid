@@ -62,7 +62,6 @@ export class TimedValue<V> implements ITimedValue<V> {
     }
 
     this.keyPoints.splice(ib, 0, kp);
-    console.log("KP:", this.keyPoints);
   }
 
   insertKeyPoint(
@@ -105,3 +104,9 @@ export class TimedValue<V> implements ITimedValue<V> {
 }
 
 export class TimedNumber extends TimedValue<number> {}
+
+export function sinInOutInterpolator(a: number, b: number, k: number): number {
+  const theta = -Math.PI / 2 + k * Math.PI;
+  const kk = (1 + Math.sin(theta)) / 2;
+  return a + kk * (b - a);
+}
