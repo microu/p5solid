@@ -11,7 +11,7 @@ import { TimedNumber, sinInOutInterpolator } from "../ticks/TimedValue";
 export function sampleItemsGroupD(): P5Runner {
   // parameters
   const bgcolor = resolveColor("slate-900");
-  const nItems = 9;
+  const nItems = 77;
 
   // state
   let itemIndex = 0;
@@ -22,13 +22,15 @@ export function sampleItemsGroupD(): P5Runner {
   const group = new P5ItemsGroup({ postDraw });
   function postDraw(ig: P5ItemsGroup, _p: p5, ctx: IP5TimeContext) {
     while (group.length < nItems && ctx.t > nextAppendChild) {
-      if (itemIndex % 2 == 0) {
+      if (itemIndex % 3 == 0) {
         ig.appendChild(createCircleItem(ctx.t));
-      } else {
+      } else if (itemIndex % 3 == 1){
+        ig.appendChild(createDiamondItem(ctx.t));
+      } else  {
         ig.appendChild(createSquareItem(ctx.t));
       }
       itemIndex += 1;
-      nextAppendChild = ctx.t + Math.random() * 1000;
+      nextAppendChild = ctx.t + Math.random() * 100;
     }
   }
 
@@ -83,12 +85,67 @@ function createCircleItem(t: number) {
 
     p.noFill();
     p.stroke(lineColor);
-    p.strokeWeight(2);
+    p.strokeWeight(1);
     p.line(x, 0, x, 256);
 
     p.noStroke();
     p.fill(lineColor);
     p.circle(x, y, 12);
+
+    return ctx.t < endOfLife ? "" : "!done";
+  });
+}
+
+function createDiamondItem(t: number) {
+  const t0 = t;
+  const lineColor =
+    colorChoices01[Math.floor(Math.random() * colorChoices01.length)];
+  const endOfLife = t + 6000 + Math.random() * 12000;
+
+  let x = 28 + Math.random() * 228;
+  const vx = new TimedNumber([{ t, v: x }], sinInOutInterpolator);
+
+  let y = 28 + Math.random() * 228;
+  const vy = new TimedNumber([{ t, v: y }], sinInOutInterpolator);
+
+  let dt = 500 + Math.random() * 1500;
+  while (t + dt <= endOfLife) {
+    x = generateUntil(
+      () => 28 + Math.random() * 228,
+      (v) => Math.abs(v - x) > 10 && Math.abs(v - x) < 100
+    );
+    vx.addKeyPoint({ t: t + dt, v: x });
+    dt += 500 + Math.random() * 1500;
+  }
+
+  dt = 500 + Math.random() * 1500;
+  while (t + dt <= endOfLife) {
+    y = generateUntil(
+      () => 28 + Math.random() * 228,
+      (v) => Math.abs(v - y) > 20 && Math.abs(v - x) < 150
+    );
+    vy.addKeyPoint({ t: t + dt, v: y });
+    dt += 500 + Math.random() * 1000;
+  }
+
+  return new P5Drawer((p, ctx) => {
+    const x = vx.v(ctx.t);
+    const y = vy.v(ctx.t);
+    const r = 9 + 3 * Math.sin((2 * Math.PI * (ctx.t -t0)) / 3000);
+
+    p.noFill();
+    p.stroke(lineColor);
+    p.strokeWeight(1);
+    p.line(x, 0, x, 256);
+
+    p.noStroke();
+    p.fill(lineColor);
+    p.beginShape();
+    p.vertex(x, y - r);
+    p.vertex(x + r, y);
+    p.vertex(x, y + r);
+    p.vertex(x - r, y);
+    p.endShape(p.CLOSE);
 
     return ctx.t < endOfLife ? "" : "!done";
   });
@@ -101,7 +158,7 @@ function createSquareItem(t: number) {
   const vy = new TickableValue(128);
   const endOfLife = 5000 + Math.random() * 12000;
 
-  let nextEvent =  Math.random() * 1500;
+  let nextEvent = Math.random() * 1500;
 
   return new P5Drawer((p, ctx) => {
     vx.tick(ctx.t);
@@ -124,10 +181,9 @@ function createSquareItem(t: number) {
       nextEvent += dt + 1000 * Math.random();
     }
 
-
     p.noFill();
     p.stroke(lineColor);
-    p.strokeWeight(2);
+    p.strokeWeight(1);
     p.line(vx.value(), 0, vx.value(), 256);
 
     p.noStroke();
