@@ -6,12 +6,26 @@ import { P5ItemsGroup } from "../p5div/P5ItemsGroup";
 import { P5Drawer } from "../p5div/P5Drawer";
 import { colorChoices01 } from "./colorChoices";
 import { TickableValue } from "../ticks/values";
-import { TimedNumber, sinInOutInterpolator } from "../ticks/TimedValue";
+import {
+  IKeyPoint,
+  TimedColor,
+  TimedNumber,
+  sinInOutInterpolator,
+} from "../ticks/TimedValue";
+import {
+  easeSinInOut,
+  easeElasticOut,
+  easeElasticIn,
+  easeElasticInOut,
+  easeBounceIn,
+  easeBounceOut,
+  easeCubicInOut,
+} from "d3-ease";
 
 export function sampleItemsGroupD(): P5Runner {
   // parameters
   const bgcolor = resolveColor("slate-900");
-  const nItems = 77;
+  const nItems = 3;
 
   // state
   let itemIndex = 0;
@@ -23,11 +37,11 @@ export function sampleItemsGroupD(): P5Runner {
   function postDraw(ig: P5ItemsGroup, _p: p5, ctx: IP5TimeContext) {
     while (group.length < nItems && ctx.t > nextAppendChild) {
       if (itemIndex % 3 == 0) {
-        ig.appendChild(createCircleItem(ctx.t));
-      } else if (itemIndex % 3 == 1){
         ig.appendChild(createDiamondItem(ctx.t));
-      } else  {
-        ig.appendChild(createSquareItem(ctx.t));
+      } else if (itemIndex % 3 == 1) {
+        ig.appendChild(createDiamondItem(ctx.t));
+      } else {
+        ig.appendChild(createDiamondItem(ctx.t));
       }
       itemIndex += 1;
       nextAppendChild = ctx.t + Math.random() * 100;
@@ -54,10 +68,10 @@ function createCircleItem(t: number) {
   const endOfLife = t + 6000 + Math.random() * 12000;
 
   let x = 28 + Math.random() * 228;
-  const vx = new TimedNumber([{ t, v: x }], sinInOutInterpolator);
+  const vx = new TimedNumber([{ t, v: x }], { easing: easeCubicInOut });
 
   let y = 28 + Math.random() * 228;
-  const vy = new TimedNumber([{ t, v: y }], sinInOutInterpolator);
+  const vy = new TimedNumber([{ t, v: y }], { easing: easeBounceOut });
 
   let dt = 500 + Math.random() * 1500;
   while (t + dt <= endOfLife) {
@@ -103,10 +117,24 @@ function createDiamondItem(t: number) {
   const endOfLife = t + 6000 + Math.random() * 12000;
 
   let x = 28 + Math.random() * 228;
-  const vx = new TimedNumber([{ t, v: x }], sinInOutInterpolator);
+  const vx = new TimedNumber([{ t, v: x }], { easing: easeSinInOut });
 
   let y = 28 + Math.random() * 228;
-  const vy = new TimedNumber([{ t, v: y }], sinInOutInterpolator);
+  const vy = new TimedNumber([{ t, v: y }], { easing: easeElasticOut });
+
+  const color1 =
+    colorChoices01[Math.floor(Math.random() * colorChoices01.length)];
+
+  const nColorSteps = Math.floor(20 + Math.random() * 5);
+  const step = (endOfLife - t) / (nColorSteps + 1);
+  const colorKeyPoints: IKeyPoint<string>[] = [
+    { t, v: lineColor },
+    { t: endOfLife, v: color1 },
+  ];
+  for (let i = 1; i < nColorSteps; i += 1) {
+    colorKeyPoints.push({ t: step * i, v: (i % 2 == 1) ? color1 : lineColor });
+  }
+  const vcolor = new TimedColor(colorKeyPoints, { easing: easeSinInOut });
 
   let dt = 500 + Math.random() * 1500;
   while (t + dt <= endOfLife) {
@@ -131,7 +159,7 @@ function createDiamondItem(t: number) {
   return new P5Drawer((p, ctx) => {
     const x = vx.v(ctx.t);
     const y = vy.v(ctx.t);
-    const r = 9 + 3 * Math.sin((2 * Math.PI * (ctx.t -t0)) / 3000);
+    const r = 9 + 3 * Math.sin((2 * Math.PI * (ctx.t - t0)) / 3000);
 
     p.noFill();
     p.stroke(lineColor);
@@ -139,7 +167,7 @@ function createDiamondItem(t: number) {
     p.line(x, 0, x, 256);
 
     p.noStroke();
-    p.fill(lineColor);
+    p.fill(vcolor.v(ctx.t));
     p.beginShape();
     p.vertex(x, y - r);
     p.vertex(x + r, y);

@@ -1,5 +1,10 @@
 import { expect, test, describe, it } from "vitest";
-import { IKeyPoint, TimedValue, sinInOutInterpolator } from "../../src/ticks/TimedValue";
+import {
+  IKeyPoint,
+  TimedValue,
+  sinInOutInterpolator,
+} from "../../src/ticks/TimedValue";
+import * as d3ease from "d3-ease";
 
 describe("Timed value", function () {
   test("Basic usage with numbers", function () {
@@ -39,7 +44,6 @@ describe("Timed value", function () {
     expect(tv.v(9)).toBe("ten");
   });
 
-
   test("Basic usage with custom interpolator", function () {
     const keyPoints = [
       { t: 1, v: 0 },
@@ -47,7 +51,9 @@ describe("Timed value", function () {
       { t: 3, v: 600 },
       { t: 10, v: 700 },
     ];
-    const tv = new TimedValue(keyPoints, sinInOutInterpolator);
+    const tv = new TimedValue(keyPoints, {
+      interpolator: sinInOutInterpolator,
+    });
 
     expect(tv.v(-1)).toBe(0);
     expect(tv.v(1)).toBe(0);
@@ -61,10 +67,10 @@ describe("Timed value", function () {
     checkSinInOutInterpolation(tv, keyPoints[2], keyPoints[3]);
   });
 
-  test("Basic usage with custom interpolator at a given checkpoint", function () {
+  test("Basic usage with custom easing at a given checkpoint", function () {
     const keyPoints = [
       { t: 1, v: 30 },
-      { t: 11, v: 500, interpolator: sinInOutInterpolator },
+      { t: 11, v: 500, easing: d3ease.easeSinInOut },
       { t: 111, v: 600 },
       { t: 1111, v: 700 },
     ];
@@ -192,6 +198,29 @@ describe("Timed value", function () {
     checkLinearInterpolation(tv, keyPoints[3], { t: 45, v: 7 });
     checkLinearInterpolation(tv, { t: 45, v: 7 }, { t: 50, v: 10 });
     expect(tv.v(100)).toBe(10);
+  });
+
+  test("insertKeyPoint method - fix value at a given time  + set easingBefore", function () {
+    const keyPoints = [
+      { t: 10, v: 1 },
+      { t: 20, v: 3 },
+      { t: 30, v: 5 },
+      { t: 40, v: 7 },
+    ];
+    const tv = new TimedValue(keyPoints);
+    expect(tv.v(0)).toBe(1);
+    checkLinearInterpolation(tv, keyPoints[0], keyPoints[1]);
+    checkLinearInterpolation(tv, keyPoints[1], keyPoints[2]);
+    checkLinearInterpolation(tv, keyPoints[2], keyPoints[3]);
+    expect(tv.v(100)).toBe(7);
+
+    tv.insertKeyPoint(25, d3ease.easeSinInOut); // v==4
+    expect(tv.v(0)).toBe(1);
+    checkLinearInterpolation(tv, keyPoints[0], keyPoints[1]);
+    checkSinInOutInterpolation(tv, keyPoints[1], { t: 25, v: 4 });
+    checkLinearInterpolation(tv, { t: 25, v: 4 }, keyPoints[2]);
+    checkLinearInterpolation(tv, keyPoints[2], keyPoints[3]);
+    expect(tv.v(100)).toBe(7);
   });
 });
 

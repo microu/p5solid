@@ -1,34 +1,52 @@
+import chroma from "chroma-js";
 import { IValueAt } from "./values";
 
 export interface ITimedValue<V> {
   v(t: number): V;
 }
 
-export type ITimedValueInterpolator<V> = (va: V, vb: V, k: number) => V;
+export type TimedValueInterpolator<V> = (va: V, vb: V, k: number) => V;
+export type EasingFunc = (k: number) => number;
 
 export interface IKeyPoint<V> extends IValueAt<V> {
-  interpolator?: ITimedValueInterpolator<V>;
+  easing?: EasingFunc;
 }
 
 function defaultInterpolator<V>(va: V, vb: V, k: number): V {
   if (typeof va == "number" && typeof vb == "number") {
-    return (va + k * (vb - va)) as V;
+    // return (va + k * (vb - va)) as V;
+    return linearInterpolator(va, vb, k) as V;
   }
 
   return k < 0.5 ? va : vb;
 }
 
+function linearInterpolator(va: number, vb: number, k: number) {
+  return va + k * (vb - va);
+}
+
+function easingIdentity(k: number) {
+  return k;
+}
+
+export type TTimedValueOptions<V> = {
+  interpolator?: TimedValueInterpolator<V>;
+  easing?: EasingFunc;
+};
+
 export class TimedValue<V> implements ITimedValue<V> {
   private keyPoints: IKeyPoint<V>[] = [];
-  private interpolator: ITimedValueInterpolator<V>;
+  private interpolator: TimedValueInterpolator<V>;
+  private easing: EasingFunc;
 
   constructor(
     keyPoints: IKeyPoint<V>[] = [],
-    interpolator?: ITimedValueInterpolator<V>
+    options: TTimedValueOptions<V> = {}
   ) {
     this.keyPoints = [...keyPoints];
     this.keyPoints.sort((kpa, kpb) => kpa.t - kpb.t);
-    this.interpolator = interpolator ?? defaultInterpolator;
+    this.interpolator = options.interpolator ?? defaultInterpolator;
+    this.easing = options.easing ?? easingIdentity;
   }
 
   v(t: number): V {
@@ -65,13 +83,17 @@ export class TimedValue<V> implements ITimedValue<V> {
   }
 
   insertKeyPoint(
-    kp: Omit<IKeyPoint<V>, "v">,
-    interpolatorBefore?: ITimedValueInterpolator<V>
+    kp: number | Omit<IKeyPoint<V>, "v">,
+    easingBefore?: EasingFunc
   ) {
-    if (interpolatorBefore != undefined) {
+    if (typeof kp == "number") {
+      kp = { t: kp };
+    }
+
+    if (easingBefore != undefined) {
       const [ia, _ib] = this.findInterval(kp.t);
       if (ia >= 0) {
-        this.keyPoints[ia].interpolator = interpolatorBefore;
+        this.keyPoints[ia].easing = easingBefore;
       }
     }
     const v = this.v(kp.t);
@@ -79,9 +101,9 @@ export class TimedValue<V> implements ITimedValue<V> {
   }
 
   private _interpolate(a: IKeyPoint<V>, b: IKeyPoint<V>, t: number): V {
-    const interpolator = a.interpolator ?? this.interpolator;
+    const easing = a.easing ?? this.easing;
     const k = (t - a.t) / (b.t - a.t);
-    return interpolator(a.v, b.v, k);
+    return this.interpolator(a.v, b.v, easing(k));
   }
 
   private findInterval(t: number): [ia: number, ib: number] {
@@ -103,7 +125,31 @@ export class TimedValue<V> implements ITimedValue<V> {
   }
 }
 
-export class TimedNumber extends TimedValue<number> {}
+
+export class TimedNumber extends TimedValue<number> {
+  constructor(
+    keyPoints: IKeyPoint<number>[] = [],
+    options: TTimedValueOptions<number> = {}
+  ) {
+    const interpolator = options.interpolator ?? linearInterpolator;
+    super(keyPoints, { ...options, interpolator });
+  }
+}
+
+function chromaColorInterpolator(va: string, vb: string, k: number) {
+  return chroma.mix(va, vb, k).hex();
+}
+
+
+export class TimedColor extends TimedValue<string> {
+  constructor(
+    keyPoints: IKeyPoint<string>[] = [],
+    options: TTimedValueOptions<string> = {}
+  ) {
+    const interpolator = options.interpolator ?? chromaColorInterpolator;
+    super(keyPoints, { ...options, interpolator });
+  }
+}
 
 export function sinInOutInterpolator(a: number, b: number, k: number): number {
   const theta = -Math.PI / 2 + k * Math.PI;
