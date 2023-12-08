@@ -25,7 +25,7 @@ import {
 export function sampleItemsGroupD(): P5Runner {
   // parameters
   const bgcolor = resolveColor("slate-900");
-  const nItems = 3;
+  const nItems = 33;
 
   // state
   let itemIndex = 0;
@@ -159,7 +159,10 @@ function createDiamondItem(t: number) {
   return new P5Drawer((p, ctx) => {
     const x = vx.v(ctx.t);
     const y = vy.v(ctx.t);
-    const r = 9 + 3 * Math.sin((2 * Math.PI * (ctx.t - t0)) / 3000);
+    
+    const distanceFromCenter = Math.sqrt((x -128)**2 + (y- 128) **2)
+    const r = 6 + 24 * (1 -distanceFromCenter/128) ** 2;
+
 
     p.noFill();
     p.stroke(lineColor);
