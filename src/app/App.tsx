@@ -1,7 +1,7 @@
-import { P5Div } from "./p5div";
+import { P5Div } from "../p5div";
 import { sampleA } from "./p5samples/sampleA";
 import { sampleB } from "./p5samples/sampleB";
-import Header from "./ui/Header";
+import Header from "./Header";
 
 function App() {
   return (
@@ -17,7 +17,7 @@ function App() {
           </p>
           <ul class="flex flex-col">
             <li class="m-0 list-disc list-inside">
-              <a href="./p5items.html">Samples using <code class="font-mono text-red-900">P5Item</code></a>
+              <a href="#">Samples...</a>
             </li>
           </ul>
         </div>

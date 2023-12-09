@@ -1,6 +1,6 @@
 import p5 from "p5";
 import { resolveColor } from "../twconf";
-import { P5Runner } from "../p5div/P5Runner";
+import { P5Runner } from "../../p5div/P5Runner";
 
 type TLine = {
   color: string;
@@ -65,6 +65,7 @@ export const sampleB = () => {
     resolveColor("emerald-100"),
     resolveColor("purple-100"),
   ];
+  
   function createLine(): TLine {
     const color = lineColors[Math.floor(Math.random() * lineColors.length)];
     const x1 = 100 + Math.random() * 600;

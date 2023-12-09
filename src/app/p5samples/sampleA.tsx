@@ -1,6 +1,6 @@
 import p5 from "p5";
 import { resolveColor } from "../twconf";
-import { P5Runner } from "../p5div/P5Runner";
+import { P5Runner } from "../../p5div/P5Runner";
 
 export const sampleA = () => {
 
