@@ -1,4 +1,4 @@
-import {  ISegment, ISegmentData, SegmentBase } from "./segments";
+import { ISegment, ISegmentData, SegmentBase } from "./segments";
 
 export interface IValueSegmentData extends ISegmentData {
   va: number;
@@ -15,10 +15,14 @@ function isInfinity(x: number) {
   return x == Infinity || x == -Infinity;
 }
 
-export class ValueSegmentBase extends SegmentBase implements IValueSegment, ISegment {
+export class ValueSegmentBase
+  extends SegmentBase
+  implements IValueSegment, ISegment
+{
   readonly v: ValueFunc;
   readonly va: number;
   readonly vb: number;
+  private deltav: number;
 
   constructor(arg: Partial<IValueSegment>) {
     super(arg);
@@ -35,11 +39,14 @@ export class ValueSegmentBase extends SegmentBase implements IValueSegment, ISeg
         if (isInfinity(this.b)) {
           this.v = (_: number) => this.a;
         } else {
-          this.v = (t: number) => this.va + (t - this.a) / (this.b - this.a);
+          console.log("LINEAR")
+          this.v = (t: number) =>
+            this.va + ((t - this.a) / (this.b - this.a)) * this.deltav;
         }
       }
     }
-    this.va = this.v(this.a);
-    this.vb = this.v(this.b);
+    this.va = arg.va ?? 0;
+    this.vb = arg.vb ?? 1;
+    this.deltav = this.vb - this.va;
   }
 }
