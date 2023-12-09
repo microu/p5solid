@@ -17,7 +17,7 @@ function App() {
           </p>
           <ul class="flex flex-col">
             <li class="m-0 list-disc list-inside">
-              <a href="#">Samples...</a>
+              <a href="index_abv_samples.html">ABV Samples</a>
             </li>
           </ul>
         </div>
