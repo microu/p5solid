@@ -1,71 +1,68 @@
 import { ISegment, ISegmentData, SegmentBase } from "./segments";
 
-export interface IValueSegmentData extends ISegmentData {
-  va: number;
-  vb: number;
+export type ValueFunc<V = number> = (t: number) => V;
+export interface IValueSegment<V = number> extends ISegmentData {
+  readonly v: ValueFunc<V>;
 }
 
-export type ValueFunc = (t: number) => number;
+export type InterpolatorFunc<V> = (va: V, vb: V, k: number) => V ;
 
-export interface IValueSegment extends IValueSegmentData {
-  readonly v: ValueFunc;
+
+function nearestInterpolator<V>(va: V, vb: V, k: number): V {
+  return k < 0.5 ? va : vb;
 }
 
-function isInfinity(x: number) {
-  return x == Infinity || x == -Infinity;
+function linearInterpolator(va: number, vb: number, k: number) {
+  return va + k * (vb - va);
 }
 
-export class ValueSegmentBase
+// function easingIdentity(k: number) {
+//   return k;
+// }
+
+export class InterpolateSegment<V>
   extends SegmentBase
-  implements IValueSegment, ISegment
+  implements IValueSegment<V>, ISegment
 {
-  readonly v: ValueFunc;
-  readonly va: number;
-  readonly vb: number;
-  private deltav: number;
+  private interpolator: InterpolatorFunc<V>;
+  readonly va: V;
+  readonly vb: V;
 
-  constructor(arg: Partial<IValueSegment>) {
+  constructor(arg: Partial<ISegmentData> & { va: V; vb: V }) {
     super(arg);
-    if (arg.v != undefined) {
-      this.v = arg.v;
+    this.va = arg.va;
+    this.vb = arg.vb;
+    if (typeof this.va == "number") {
+      this.interpolator = linearInterpolator as unknown as InterpolatorFunc<V>;
     } else {
-      if (isInfinity(this.a)) {
-        if (isInfinity(this.b)) {
-          this.v = (_: number) => 0;
-        } else {
-          this.v = (_: number) => this.vb;
-        }
-      } else {
-        if (isInfinity(this.b)) {
-          this.v = (_: number) => this.va;
-        } else {
-          console.log("LINEAR");
-          this.v = (t: number) =>
-            this.va + ((t - this.a) / (this.b - this.a)) * this.deltav;
-        }
-      }
+      this.interpolator = nearestInterpolator<V>;
     }
-    this.va = arg.va ?? 0;
-    this.vb = arg.vb ?? 1;
-    this.deltav = this.vb - this.va;
   }
 
-  protected setValueFunc(v:ValueFunc) {
-    this.v = v;
+  public v( t: number): V {
+    const k = (t - this.a) / (this.b - this.a);
+    return this.interpolator(this.va, this.vb, k);
   }
+
 }
 
-export class ValueSegmentInterpolator
-  extends ValueSegmentBase
-  implements IValueSegment, ISegment
-{
-  constructor(arg: Omit<Partial<IValueSegment>, "v"> & { easing?: ValueFunc }) {
-    super({ ...arg});
-    this.v = this._interpolator
+// export class ValueSegmentInterpolator
+//   extends ValueSegmentBase
+//   implements IValueSegment, ISegment
+// {
+//   constructor(arg: Omit<Partial<IValueSegment>, "v"> & { easing?: ValueFunc }) {
+//     const narg = normalizeSegmentArg(arg);
+//     let interpolator: undefined | ValueFunc;
+//     if (!isInfinity(narg.a) && !isInfinity(narg.b)) {
+//       interpolator = function (t: number) {
+//         const k = (t - narg.a) / (narg.b - narg.a);
+//         return;
+//       };
+//     }
+//     super({ ...narg, v: interpolator });
+//   }
 
-  }
-
-  _interpolator(): ValueFunc {
-    return (k: number) => k;
-  }
-}
+//   _interpolator(): ValueFunc {
+//     return (k: number) => k;
+//   }
+// }

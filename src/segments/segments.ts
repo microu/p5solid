@@ -9,14 +9,22 @@ export interface ISegment extends ISegmentData {
   contains(t: number): boolean;
 }
 
-
 export function normalizeSegmentArg(arg: Partial<ISegmentData>): ISegmentData {
+  const narg = {
+    ...{ a: 0, b: 1, aClosed: true, bClosed: false },
+    ...arg,
+  };
 
-  const narg: ISegmentData = {...{a:-Infinity, b:Infinity, aClosed:true, bClosed:false}, ...arg}
+  if (!Number.isFinite(narg.a)) {
+    throw new Error(`a is not finite: ${narg.a}`);
+  }
+
+  if (!Number.isFinite(narg.b)) {
+    throw new Error(`b is not finite: ${narg.b}`);
+  }
 
   return narg;
 }
-
 
 export class SegmentBase implements ISegment {
   readonly a;
@@ -30,32 +38,17 @@ export class SegmentBase implements ISegment {
     if (typeof arg == "number") {
       arg = { a: arg, b: b };
     }
-    const narg = normalizeSegmentArg(arg) 
+    const narg = normalizeSegmentArg(arg);
     this.a = narg.a;
     this.aClosed = narg.aClosed;
-    this.b = narg.b
+    this.b = narg.b;
     this.bClosed = narg.bClosed;
   }
 
   contains(t: number): boolean {
-    if (this.a == Infinity || this.a == -Infinity || this.aClosed) {
-      if (t < this.a) {
-        return false;
-      }
-    } else {
-      if (t <= this.a) {
-        return false;
-      }
-    }
-    if (this.b == Infinity || this.b == -Infinity || this.bClosed) {
-      if (t > this.b) {
-        return false;
-      }
-    } else {
-      if (t >= this.b) {
-        return false;
-      }
-    }
-    return true;
+    return (
+      (this.aClosed ? t >= this.a : t > this.a) &&
+      (this.bClosed ? t <= this.b : t < this.b)
+    );
   }
 }
