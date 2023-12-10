@@ -33,11 +33,11 @@ export class ValueSegmentBase
         if (isInfinity(this.b)) {
           this.v = (_: number) => 0;
         } else {
-          this.v = (_: number) => this.b;
+          this.v = (_: number) => this.vb;
         }
       } else {
         if (isInfinity(this.b)) {
-          this.v = (_: number) => this.a;
+          this.v = (_: number) => this.va;
         } else {
           console.log("LINEAR")
           this.v = (t: number) =>
