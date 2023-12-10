@@ -1,4 +1,4 @@
-import { describe, test, it, expect } from "vitest";
+import { describe, test, expect } from "vitest";
 import { IValueSegmentData, ValueFunc, ValueSegmentBase } from "@src/segments";
 
 describe("ValueSegmentBase class", function () {
