@@ -9,11 +9,14 @@ export interface ISegment extends ISegmentData {
   contains(t: number): boolean;
 }
 
-export type TimeValueFunc = (t: number) => number;
 
-export interface ITimeValueSegment extends ISegment {
-  readonly v: TimeValueFunc;
+export function normalizeSegmentArg(arg: Partial<ISegmentData>): ISegmentData {
+
+  const narg: ISegmentData = {...{a:-Infinity, b:Infinity, aClosed:true, bClosed:false}, ...arg}
+
+  return narg;
 }
+
 
 export class SegmentBase implements ISegment {
   readonly a;
@@ -21,16 +24,17 @@ export class SegmentBase implements ISegment {
   readonly aClosed;
   readonly bClosed;
 
-  constructor(arg: Partial<ISegment>);
+  constructor(arg: Partial<ISegmentData>);
   constructor(a: number, b: number);
-  constructor(arg: number | Partial<ISegment>, b?: number) {
+  constructor(arg: number | Partial<ISegmentData>, b?: number) {
     if (typeof arg == "number") {
       arg = { a: arg, b: b };
     }
-    this.a = arg.a ?? -Infinity;
-    this.aClosed = arg.aClosed ?? true;
-    this.b = arg.b ?? Infinity;
-    this.bClosed = arg.bClosed ?? false;
+    const narg = normalizeSegmentArg(arg) 
+    this.a = narg.a;
+    this.aClosed = narg.aClosed;
+    this.b = narg.b
+    this.bClosed = narg.bClosed;
   }
 
   contains(t: number): boolean {

@@ -39,7 +39,7 @@ export class ValueSegmentBase
         if (isInfinity(this.b)) {
           this.v = (_: number) => this.va;
         } else {
-          console.log("LINEAR")
+          console.log("LINEAR");
           this.v = (t: number) =>
             this.va + ((t - this.a) / (this.b - this.a)) * this.deltav;
         }
@@ -48,5 +48,24 @@ export class ValueSegmentBase
     this.va = arg.va ?? 0;
     this.vb = arg.vb ?? 1;
     this.deltav = this.vb - this.va;
+  }
+
+  protected setValueFunc(v:ValueFunc) {
+    this.v = v;
+  }
+}
+
+export class ValueSegmentInterpolator
+  extends ValueSegmentBase
+  implements IValueSegment, ISegment
+{
+  constructor(arg: Omit<Partial<IValueSegment>, "v"> & { easing?: ValueFunc }) {
+    super({ ...arg});
+    this.v = this._interpolator
+
+  }
+
+  _interpolator(): ValueFunc {
+    return (k: number) => k;
   }
 }
