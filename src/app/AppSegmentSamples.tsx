@@ -4,10 +4,10 @@ import Header from "./Header";
 import { resolveColor } from "./twconf";
 import { P5Runner } from "@src/p5div/P5Runner";
 import { ClockBase } from "@src/segments/tickables";
-import { InterpolateSegment, SegmentedValue } from "@src/segments";
+import { InterpolateSegment } from "@src/segments";
 import { easeSinInOut } from "d3-ease";
 
-function AppABVsamples() {
+function AppSegmentsamples() {
   return (
     <>
       <Header title="P5JS / Solid - abv samples" />
@@ -15,22 +15,22 @@ function AppABVsamples() {
         <div class="m-auto flex flex-col justify-between  bg-stone-300 gap-2 p-2">
           <P5Div
             runner={circleInRect(
-              resolveColor("slate-600"),
-              resolveColor("orange-700")
-            )}
-          ></P5Div>
-          {/* <P5Div
-            runner={circleInRect(
-              resolveColor("stone-500"),
-              resolveColor("pink-800")
+              "slate-800",
+              "orange-700"
             )}
           ></P5Div>
           <P5Div
             runner={circleInRect(
-              resolveColor("cyan-800"),
-              resolveColor("emerald-700")
+              "stone-500",
+              "pink-800",
             )}
-          ></P5Div> */}
+          ></P5Div>
+          <P5Div
+            runner={circleInRect(
+              "cyan-800",
+              "emerald-700"
+            )}
+          ></P5Div>
         </div>
       </div>
     </>
@@ -38,25 +38,27 @@ function AppABVsamples() {
 }
 
 function circleInRect(bgcolor: string, color: string) {
+  bgcolor = resolveColor(bgcolor)
+  color = resolveColor(color)
   const clock = new ClockBase({ scale: 1 / 1000, t0: 0 });
 
+  const delta = Math.random() * 10
   const cx = new InterpolateSegment(
     {
-      a: 0,
+      a: delta,
       va: 50,
-      b: 10 + Math.random() * 10,
-      vb: 550,
+      b: delta + 2 + Math.random() * 5,
+      vb: 550 ,
     },
-    //{ easing: easeSinInOut }
+    { easing: easeSinInOut }
   );
 
-  const cy = 50;
+  const cy = 45;
   const d = 66;
 
   function setup(p: p5) {
     p.createCanvas(600, 90);
     p.frameRate(32);
-    clock.tick(p.millis());
   }
   
   function draw(p: p5) {
@@ -70,4 +72,4 @@ function circleInRect(bgcolor: string, color: string) {
   return new P5Runner(setup, draw);
 }
 
-export default AppABVsamples;
+export default AppSegmentsamples;
