@@ -1,3 +1,4 @@
+import chroma from "chroma-js";
 import { ISegment, ISegmentData, SegmentBase } from "./segments";
 
 export interface IValueSegmentData<V> extends ISegmentData {
@@ -129,4 +130,19 @@ export class SegmentedValue<V> implements IValueSegment<V> {
     }
     throw new Error(`Should never happen: t=${t}`);
   }
+}
+
+function colorInterpolator(ca: string, cb: string, k:number):string {
+  return chroma.mix(ca, cb, k).hex()
+}
+
+
+export class InterpolateColorSegment extends InterpolateSegment<string> {
+  constructor(
+  arg: Partial<ISegmentData> & { va: string; vb: string },
+  options: Partial<TInterpolateSegmentOptions<string>> = {}) {
+    options.interpolator = colorInterpolator
+    super(arg, options)
+  }
+
 }
