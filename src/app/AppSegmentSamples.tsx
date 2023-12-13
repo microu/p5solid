@@ -21,6 +21,7 @@ import {
   easeExpInOut,
   easeSinInOut,
 } from "d3-ease";
+import { dancingCircle } from "./p5samples/dancingCircle";
 
 function AppSegmentsamples() {
   return (
@@ -29,7 +30,7 @@ function AppSegmentsamples() {
       <div class="flex">
         <div class="m-auto flex flex-col justify-between  bg-stone-300 gap-2 p-2">
            <P5Div
-            runner={circleInRect("slate-800", "orange-700", "orange-200")}
+            runner={dancingCircle()}
           ></P5Div>
           <P5Div
             runner={circleInRect("stone-500", "pink-600", "pink-300")}
@@ -50,7 +51,7 @@ function circleInRect(bgcolor: string, colora: string, colorb: string) {
   bgcolor = resolveColor(bgcolor);
   colora = resolveColor(colora);
   colorb = resolveColor(colorb);
-  const clock = new ClockBase({ scale: 1 / 1000, t0: 0 });
+  const clock = new ClockBase({ scale: 1 / 1000});
 
   // const delta = Math.random() * 10;
   const delta = 20 + Math.random() * 10;

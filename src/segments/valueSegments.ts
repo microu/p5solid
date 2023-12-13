@@ -171,7 +171,6 @@ export class MirrorValueSegment<V>
   }
 }
 
-
 export class RepeatValueSegment<V>
   extends SegmentBase
   implements IValueSegment<V>, ISegment
@@ -195,7 +194,6 @@ export class RepeatValueSegment<V>
       return this.base.v(t - this.length * Math.ceil((t - this.base.b) / this.length))
     } else { // t < this.base.a
       const t1 = t + this.length * Math.ceil((this.base.a - t)/ this.length)
-      console.log("T < A", t, this.base.a, t1)
       return this.base.v(t1)
     }
   }
