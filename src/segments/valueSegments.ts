@@ -7,7 +7,9 @@ export interface IValueSegmentData<V> extends ISegmentData {
 }
 export type ValueFunc<V = number> = (t: number) => V;
 
-export interface IValueSegment<V = number> extends IValueSegmentData<V>, ISegment{
+export interface IValueSegment<V = number>
+  extends IValueSegmentData<V>,
+    ISegment {
   readonly v: ValueFunc<V>;
 }
 
@@ -132,17 +134,69 @@ export class SegmentedValue<V> implements IValueSegment<V> {
   }
 }
 
-function colorInterpolator(ca: string, cb: string, k:number):string {
-  return chroma.mix(ca, cb, k).hex()
+function colorInterpolator(ca: string, cb: string, k: number): string {
+  return chroma.mix(ca, cb, k).hex();
 }
-
 
 export class InterpolateColorSegment extends InterpolateSegment<string> {
   constructor(
-  arg: Partial<ISegmentData> & { va: string; vb: string },
-  options: Partial<TInterpolateSegmentOptions<string>> = {}) {
-    options.interpolator = colorInterpolator
-    super(arg, options)
+    arg: Partial<ISegmentData> & { va: string; vb: string },
+    options: Partial<TInterpolateSegmentOptions<string>> = {}
+  ) {
+    options.interpolator = colorInterpolator;
+    super(arg, options);
   }
+}
 
+export class MirrorValueSegment<V>
+  extends SegmentBase
+  implements IValueSegment<V>, ISegment
+{
+  readonly va: V;
+  readonly vb: V;
+  readonly base: IValueSegment<V>;
+
+  constructor(base: IValueSegment<V>) {
+    super({ a: base.a, b: base.b + base.b - base.a });
+    this.va = base.va;
+    this.vb = base.vb;
+    this.base = base;
+  }
+  v(t: number): V {
+    if (t <= this.base.b) {
+      return this.base.v(t);
+    } else {
+      return this.base.v(this.base.b - (t - this.base.b));
+    }
+  }
+}
+
+
+export class RepeatValueSegment<V>
+  extends SegmentBase
+  implements IValueSegment<V>, ISegment
+{
+  readonly va: V;
+  readonly vb: V;
+  readonly base: IValueSegment<V>;
+  private length: number;
+
+  constructor(base: IValueSegment<V>) {
+    super({ a: base.a, b: base.b});
+    this.va = base.va;
+    this.vb = base.vb;
+    this.base = base;
+    this.length = this.base.b - this.base.a
+  }
+  v(t: number): V {
+    if (this.base.contains(t)) {
+      return this.base.v(t);
+    } else if (t >= this.base.b ) {
+      return this.base.v(t - this.length * Math.ceil((t - this.base.b) / this.length))
+    } else { // t < this.base.a
+      const t1 = t + this.length * Math.ceil((this.base.a - t)/ this.length)
+      console.log("T < A", t, this.base.a, t1)
+      return this.base.v(t1)
+    }
+  }
 }

@@ -52,3 +52,5 @@ export class SegmentBase implements ISegment {
     );
   }
 }
+
+
