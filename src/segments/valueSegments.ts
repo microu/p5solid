@@ -181,20 +181,23 @@ export class RepeatValueSegment<V>
   private length: number;
 
   constructor(base: IValueSegment<V>) {
-    super({ a: base.a, b: base.b});
+    super({ a: base.a, b: base.b });
     this.va = base.va;
     this.vb = base.vb;
     this.base = base;
-    this.length = this.base.b - this.base.a
+    this.length = this.base.b - this.base.a;
   }
   v(t: number): V {
     if (this.base.contains(t)) {
       return this.base.v(t);
-    } else if (t >= this.base.b ) {
-      return this.base.v(t - this.length * Math.ceil((t - this.base.b) / this.length))
-    } else { // t < this.base.a
-      const t1 = t + this.length * Math.ceil((this.base.a - t)/ this.length)
-      return this.base.v(t1)
+    } else if (t >= this.base.b) {
+      return this.base.v(
+        t - this.length * Math.ceil((t - this.base.b) / this.length)
+      );
+    } else {
+      // t < this.base.a
+      const t1 = t + this.length * Math.ceil((this.base.a - t) / this.length);
+      return this.base.v(t1);
     }
   }
 }

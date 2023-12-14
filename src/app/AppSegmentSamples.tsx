@@ -22,6 +22,7 @@ import {
   easeSinInOut,
 } from "d3-ease";
 import { dancingCircle } from "./p5samples/dancingCircle";
+import { movingCircle } from "./p5samples/movingCircle";
 
 function AppSegmentsamples() {
   return (
@@ -33,7 +34,7 @@ function AppSegmentsamples() {
             runner={dancingCircle()}
           ></P5Div>
           <P5Div
-            runner={circleInRect("stone-500", "pink-600", "pink-300")}
+            runner={movingCircle()}
           ></P5Div>
           <P5Div
             runner={circleInRect("cyan-800", "emerald-700", "emerald-400")}

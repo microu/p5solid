@@ -3,15 +3,20 @@ export interface ITickable {
 }
 
 export interface IClock {
-  readonly started: boolean;
   readonly t: number;
+  readonly started: boolean;
   paused: boolean;
+}
+
+export interface IDeltaClock extends IClock {
+  readonly dt: number;
 }
 
 export interface IParentClock extends IClock {
   addChild(child: ITickable): void;
   removeChild(child: ITickable): void;
 }
+
 type TClockBaseOptions = {
   tick0?: number;
   // origin in ticker scale (t0 in clock scale).
@@ -29,7 +34,7 @@ const DEFAULT_TClockBaseOptions: TClockBaseOptions = {
   scale: 1,
 };
 
-export class ClockBase implements IClock, ITickable {
+export class ClockBase implements IDeltaClock, ITickable {
   private _state:
     | ""
     | "initialized"
@@ -43,6 +48,8 @@ export class ClockBase implements IClock, ITickable {
   private _scale: number = 1;
 
   private _t: number = 0; // current time (clock scale) if _started
+  private _dt: number = 0; // delta with previous tick (clock scale) if started_
+
   private options: TClockBaseOptions;
 
   constructor(options: Partial<TClockBaseOptions> = {}) {
@@ -75,6 +82,7 @@ export class ClockBase implements IClock, ITickable {
         );
       }
       if (!this.paused) {
+        this._dt = new_t - this._t;
         this._t = new_t;
         this._state = "started";
       }
@@ -85,12 +93,15 @@ export class ClockBase implements IClock, ITickable {
     return this._t;
   }
 
+  get dt() {
+    return this._dt;
+  }
+
   get started() {
     return this._state != "" && this._state != "initialized";
   }
 
   get paused() {
-
     return this._state == "paused" || this._state == "pause_requested";
   }
 
@@ -102,7 +113,6 @@ export class ClockBase implements IClock, ITickable {
     } else {
       this._state = this._state == "pause_requested" ? "started" : "unpaused";
     }
-
   }
 
   get state() {
@@ -122,14 +132,12 @@ export class ParentClock
     super(options);
   }
 
-
   tick(t: number): void {
-    super.tick(t)
+    super.tick(t);
     for (const child of this._children) {
-      child.tick(this.t)
+      child.tick(this.t);
     }
   }
-
 
   addChild(child: ITickable): void {
     this._children.push(child);
