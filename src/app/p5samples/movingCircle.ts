@@ -40,7 +40,9 @@ export function movingCircle() {
   }
 
   function updater(ctx: TMovingCircleContext & { t: number; dt: number }) {
-    ctx.cx = w / 2 + (Math.sin(ctx.t / 3000) * w) / 2;
+    ctx.cx =
+      w / 2 +
+      (Math.sin((ctx.t * (1 + Math.sin(ctx.t / 1500) * 0.15)) / 3000) * w) / 2;
     return ctx;
   }
 
