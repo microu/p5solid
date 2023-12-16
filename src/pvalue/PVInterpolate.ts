@@ -47,6 +47,13 @@ export class PVInterpolate<V> implements IPValue<V> {
     this.afterMode = options.afterMode ?? "extrapolate";
   }
 
+  contains(t: number): boolean {
+    return (
+      t >= this.keyPoints[0].t &&
+      t <= this.keyPoints[this.keyPoints.length - 1].t
+    );
+  }
+
   v(t: number): V {
     const [ia, ib] = this.findInterval(t);
 
@@ -86,24 +93,6 @@ export class PVInterpolate<V> implements IPValue<V> {
 
     this.keyPoints.splice(ib, 0, kp);
   }
-
-  // insertKeyPoint(
-  //   kp: number | Omit<IKeyPoint<V>, "v">,
-  //   easingBefore?: EasingFunc
-  // ) {
-  //   if (typeof kp == "number") {
-  //     kp = { t: kp };
-  //   }
-
-  //   if (easingBefore != undefined) {
-  //     const [ia, _ib] = this.findInterval(kp.t);
-  //     if (ia >= 0) {
-  //       this.keyPoints[ia].easing = easingBefore;
-  //     }
-  //   }
-  //   const v = this.v(kp.t);
-  //   this.addKeyPoint({ ...kp, v });
-  // }
 
   private _interpolate(a: IKeyPoint<V>, b: IKeyPoint<V>, t: number): V {
     // const easing = a.easing ?? this.easing;
