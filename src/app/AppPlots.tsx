@@ -14,8 +14,10 @@ function AppPlots() {
   let plotDiv: HTMLDivElement | undefined;
 
   const pvsin1 = new PVSin({ min: -10, max: 10, period: 5 });
-  const pvsin2 = new PVSin({ min: -10, max: 10, period: 5, shift: 0.5 });
-  const pvsin3 = new PVSin({ min: -10, max: 10, period: 5, shift: 0.25 });
+  const pvsin2 = new PVSin({ min: -10, max: 10, period: 5, periodShift: 0.1 });
+  const kp3 = { t: -1, v: -2 };
+  const pvsin3 = new PVSin({ min: -10, max: 10, period: 5, keyPoint: kp3 });
+
   const data = [] as TPlotData[];
   const xa = -10;
   const xb = 10;
@@ -38,8 +40,20 @@ function AppPlots() {
     marks: [
       Plot.line(data, { x: "x", y: "y1", stroke: "darkred" }),
       Plot.line(data, { x: "x", y: "y2", stroke: "darkgreen" }),
-      Plot.line(data, { x: "x", y: "y3", stroke: "darkorange" }),
-      Plot.dot([[0,0],[0,10],[0,-10]], {symbol:"circle", fill:"red", stroke: "darkgreen" })
+      Plot.line(data, {
+        x: "x",
+        y: "y3",
+        stroke: "darkorange",
+        strokeWidth: 2.5,
+      }),
+      Plot.dot(
+        [
+          [0, 0],
+          [0.5, 0],
+          [kp3.t, kp3.v],
+        ],
+        { symbol: "circle", fill: "red", stroke: "darkgreen" }
+      ),
     ],
   });
 
