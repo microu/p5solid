@@ -17,9 +17,12 @@ function App() {
           </p>
           <ul class="flex flex-col">
             <li class="m-0 list-disc list-inside">
-              <a href="index_segment_samples.html">ABV Samples</a>
+              <a href="index_segment_samples.html">Segments Samples</a>
             </li>
-          </ul>
+            <li class="m-0 list-disc list-inside">
+              <a href="index_plots.html">Plots</a>
+            </li>
+           </ul>
         </div>
         <P5Div runner={sampleB()}></P5Div>
       </div>
