@@ -6,6 +6,7 @@ export type TPVSinOptions = {
   max: number;
   periodShift: number; // in period;
   keyPoint?: IKeyPoint<number>;
+  keyPointMode: "increasing" | "decreasing";
 };
 
 const default_PVSinOptions: TPVSinOptions = {
@@ -13,6 +14,7 @@ const default_PVSinOptions: TPVSinOptions = {
   min: -1,
   max: 1,
   periodShift: 0,
+  keyPointMode: "increasing",
 };
 
 export class PVSin implements IPValue<number> {
@@ -40,8 +42,11 @@ export class PVSin implements IPValue<number> {
       // sin = arcsin( (v -a)/b )
       // afq * t + phase = arcsin( (v -a)/b )
       // phase = arcsin( (v -a)/b ) - afq * t
-      this.phase =
-        Math.asin((kp.v - this.a) / this.b) - this.angularFrequency * kp.t;
+      let asin = Math.asin((kp.v - this.a) / this.b);
+      if (this.options.keyPointMode == "decreasing") {
+        asin = Math.PI / 2 + (Math.PI / 2 - asin);
+      }
+      this.phase = asin - this.angularFrequency * kp.t;
     }
   }
 
