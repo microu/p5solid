@@ -1,16 +1,23 @@
 import { PVSin } from "@src/pvalue/PVSin";
 import * as Plot from "@observablehq/plot";
-export function plotSinPeriodOffset() {
+import { IKeyPoint } from "@src/pvalue";
+
+export function plotSinKeyPointsDec() {
   const period = 4;
   const min = -10;
   const max = 10;
 
-  const items = [] as { pvsin: PVSin; offset: number }[];
+  const items = [] as { pvsin: PVSin; kp: IKeyPoint<number> }[];
 
-  for (const offset of [0, 0.1, 0.3, 0.5]) {
+  for (const kp of [
+    { t: 0, v: -3 },
+    { t: -7, v: -7 },
+    { t: 3, v: 4 },
+    { t: 3, v: -4 },
+  ]) {
     items.push({
-      pvsin: new PVSin({ min, max, period, periodShift: offset }),
-      offset: offset,
+      pvsin: new PVSin({ min, max, period, keyPoint: kp, keyPointMode:"decreasing" }),
+      kp,
     });
   }
 
@@ -29,7 +36,7 @@ export function plotSinPeriodOffset() {
   for (let j = 0; j < items.length; j += 1) {
     const item = items[j];
     const name = `y${j + 1}`;
-    dotsData.push({ x: period * item.offset, y: 0, name });
+    dotsData.push({ x: item.kp.t, y: item.kp.v, name });
     for (let i = 0; i <= 1000; i += 1) {
       const x = xa + (i * xdelta) / 1000;
       const r: TPlotData = { x, y: item.pvsin.v(x), name };
@@ -39,8 +46,10 @@ export function plotSinPeriodOffset() {
   console.log(dotsData);
 
   const marks = [
+    Plot.ruleY([0]),
+    Plot.ruleX([0]),
     Plot.line(data, { x: "x", y: "y", stroke: "name" }),
-    Plot.dot(dotsData, { x: "x", y: "y", stroke: "black", fill: "name" }),
+    Plot.dot(dotsData, { x: "x", y: "y", stroke: "black", fill: "name", r:5 }),
   ];
 
   const plot = Plot.plot({

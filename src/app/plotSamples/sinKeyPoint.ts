@@ -49,12 +49,12 @@ export function plotSinKeyPoints() {
     Plot.ruleY([0]),
     Plot.ruleX([0]),
     Plot.line(data, { x: "x", y: "y", stroke: "name" }),
-    Plot.dot(dotsData, { x: "x", y: "y", stroke: "black", fill: "name" }),
+    Plot.dot(dotsData, { x: "x", y: "y", stroke: "black", fill: "name", r:5 }),
   ];
 
   const plot = Plot.plot({
-    width: 500,
-    height: 250,
+    width: 700,
+    height: 350,
     style: "overflow: visible;",
     color: { type: "categorical", scheme: "dark2", legend: true },
     x: { grid: true },
