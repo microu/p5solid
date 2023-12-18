@@ -3,12 +3,19 @@ import { Component, For, createSignal } from "solid-js";
 
 type TProps = {
   items: string[];
+  selection?: number;
   handler?: (item: string, index: number) => void;
 };
 
 const ItemSelector: Component<TProps> = (props) => {
   const [iselected, setIselected] = createSignal(-1);
-
+  if (
+    props.selection != undefined &&
+    props.selection >= 0 &&
+    props.selection < props.items.length
+  ) {
+    setIselected(props.selection)
+  }
   function handleClick(i: number) {
     setIselected(i);
     if (props.handler) {

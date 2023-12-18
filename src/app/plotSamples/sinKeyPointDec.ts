@@ -10,10 +10,12 @@ export function plotSinKeyPointsDec() {
   const items = [] as { pvsin: PVSin; kp: IKeyPoint<number> }[];
 
   for (const kp of [
-    { t: 0, v: -3 },
     { t: -7, v: -7 },
     { t: 3, v: 4 },
     { t: 3, v: -4 },
+    { t: 9, v: -10 },
+    { t: 5.5, v: 10 },
+
   ]) {
     items.push({
       pvsin: new PVSin({ min, max, period, keyPoint: kp, keyPointMode:"decreasing" }),

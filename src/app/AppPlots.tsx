@@ -24,7 +24,8 @@ function AppPlots() {
       <div class="m-auto flex bg-stone-300 ">
         <ItemSelector
           items={plotNames}
-          handler={(label, i) => updatePlot(plots[i])}
+          selection={iplot}
+          handler={(_label, i) => updatePlot(plots[i])}
         />
         <div ref={plotDiv} class="bg-stone-100"></div>
         <div class="flex-1">Right</div>
