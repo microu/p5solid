@@ -2,8 +2,9 @@ import p5 from "p5";
 import { resolveColor } from "../twconf";
 import { buildP5ContextRunner } from "@src/p5div/P5ContextRunner";
 import { IKeyPoint, IPValue, PVConstant, PVInterpolate } from "@src/pvalue";
-import { easeBackOut, easeBounceOut, easeSinInOut } from "d3-ease";
+import { easeBackOut, easeBounceOut, easeElasticOut, easeSinInOut } from "d3-ease";
 import { PVSin } from "@src/pvalue/PVSin";
+import { colorChoices01 } from "./colorChoices";
 
 type TMovingCircleContext = {
   cx: number;
@@ -16,6 +17,7 @@ type TMovingCircleContext = {
 export function movingCircle() {
   const w = 600;
   const h = 90;
+
   const ctx0: TMovingCircleContext = {
     cx: w / 2,
     cy: h / 2,
@@ -47,53 +49,57 @@ export function movingCircle() {
 
   function updater(ctx: TMovingCircleContext & { t: number; dt: number }) {
     if (ctx.t > nextUpdaterUpdate) {
-      updateUpdater(ctx);
-      nextUpdaterUpdate += 1500 + Math.random() * 1500;
+      const duration = updateUpdater(ctx);
+      nextUpdaterUpdate += duration;
     }
     ctx.cx = pcx.v(ctx.t);
     return ctx;
   }
 
-  let updateIndex = 0;
-
+  
   function updateUpdater(
     ctx: TMovingCircleContext & { t: number; dt: number }
-  ) {
-    if (Math.random() < 0.2) {
-      // constant
-      pcx = new PVInterpolate([
-        { t: ctx.t, v: ctx.cx },
-        { t: ctx.t + 100, v: w / 2 },
-      ], {easing:easeSinInOut, afterMode: "constant"});
-      return;
-    }
+  ): number {
+    console.log("updateUpdater")
+    ctx.color =
+      colorChoices01[Math.floor(Math.random() * colorChoices01.length)];
 
     if (Math.random() < 0.2) {
       // sin
-      pcx = new PVSin({min: 250, max: 350, period:1500})
-      return;
+      const amplitude = 20 + Math.random() * 50;
+      const period = 700 + Math.random() * 300;
+      pcx = new PVSin({
+        min: ctx.cx - amplitude,
+        max: ctx.cx + amplitude,
+        period,
+        keyPoint: { t: ctx.t, v: ctx.cx },
+      });
+      return 2000 + Math.random() * 4000;
     }
 
+    if (Math.random() < 0.2) {
+      // constant
+      pcx = new PVConstant(ctx.cx);
+      return 500 + Math.random() * 1500;
+    }
 
     const keyPoints: IKeyPoint<number>[] = [{ t: ctx.t, v: ctx.cx }];
     let cx = ctx.cx;
     let t = ctx.t;
-    for (let i = 0; i < 9; i++) {
-      let delta = -100 + Math.random() * 200;
-      if (updateIndex % 2 == 1) {
-        delta *= 2;
-      }
+    for (let i = 0; i < 5; i++) {
+      let delta = 200 + Math.random() * 200;
 
-      if (cx + delta < 10 || cx + delta > w - 10) {
+      if (Math.abs(cx - delta - w/2)  < Math.abs(cx + delta - w/2)) {
         cx = cx - delta;
       } else {
         cx = cx + delta;
       }
-      t += 150 + Math.random() * 200;
+      t += 2000 + Math.random() * 1200;
       keyPoints.push({ t: t, v: cx });
     }
-    updateIndex += 1;
-    pcx = new PVInterpolate(keyPoints, { easing: easeSinInOut });
+    console.log("KP:", keyPoints)
+    pcx = new PVInterpolate(keyPoints, { easing:easeBackOut });
+    return t - ctx.t;
   }
 
   const runner = buildP5ContextRunner<TMovingCircleContext>(
