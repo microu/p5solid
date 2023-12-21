@@ -1,6 +1,6 @@
 import p5 from "p5";
 import { P5Div } from "../p5div";
-import Header from "./Header";
+import AppLayoutHeader from "./AppLayoutHeader";
 import { resolveColor } from "./twconf";
 import { P5Runner } from "@src/p5div/P5Runner";
 import { ClockBase } from "@src/segments/tickables";
@@ -27,7 +27,7 @@ import { movingCircles } from "./p5samples/movingCircles";
 function AppSegmentsamples() {
   return (
     <>
-      <Header title="P5JS / Solid - abv samples" />
+      <AppLayoutHeader title="P5JS / Solid - abv samples" />
       <div class="flex">
         <div class="m-auto flex flex-col justify-between  bg-stone-300 gap-2 p-2">
            <P5Div

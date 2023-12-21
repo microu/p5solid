@@ -1,4 +1,4 @@
-import Header from "./Header";
+import AppLayoutHeader from "./AppLayoutHeader";
 import * as Plot from "@observablehq/plot";
 import { plotSinPeriodOffset } from "./plotSamples/sinPeriodOffset";
 import { plotSinKeyPoints } from "./plotSamples/sinKeyPoint";
@@ -20,7 +20,7 @@ function AppPlots() {
 
   const r = (
     <>
-      <Header title="P5JS / Solid => Plots" />
+      <AppLayoutHeader title="P5JS / Solid => Plots" />
       <div class="m-auto flex bg-stone-300 ">
         <ItemSelector
           items={plotNames}
