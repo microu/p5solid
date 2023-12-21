@@ -5,18 +5,21 @@ import {
   IContextRunner,
   TickableContextEngine,
 } from "@src/segments/context";
+import { TClockBaseOptions } from "@src/segments/tickables";
+
+export type ClockContext<T> = T & { t: number; dt: number };
 
 export interface IP5ContextRunner<C = any> {
   setup(p: p5, ctx: C): void;
-  draw(p: p5, ctx: C & { t: number; dt: number }): string;
+  draw(p: p5, ctx: ClockContext<C>): string;
 }
 
 export function buildP5ContextRunner<C>(
   ctx0: C,
   runner: IP5ContextRunner<C>,
-  updater: ContextUpdaterFunc<C> | undefined = undefined
+  updater: ContextUpdaterFunc<C> | undefined = undefined,
+  options: Partial<TClockBaseOptions> = {}
 ): P5Runner {
-
   let p5Instance: p5 | undefined;
 
   const _runner: IContextRunner<C> = {
@@ -33,7 +36,7 @@ export function buildP5ContextRunner<C>(
     },
   };
 
-  const engine = new TickableContextEngine(ctx0, _runner, updater);
+  const engine = new TickableContextEngine(ctx0, _runner, updater, options);
 
   function setup(p: p5) {
     p5Instance = p;

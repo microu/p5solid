@@ -1,5 +1,5 @@
 import { identity } from "@src/utils";
-import { ClockBase, ITickable } from "./tickables";
+import { ClockBase, ITickable, TClockBaseOptions } from "./tickables";
 
 export interface IContextRunner<C = any> {
   init(ctx: C): void;
@@ -17,15 +17,17 @@ export class TickableContextEngine<C = any> implements ITickable {
   private initialized = false;
   private _done = false;
   clock: ClockBase;
+
   constructor(
     ctx0: C,
     runner: IContextRunner<C>,
-    updater: ContextUpdaterFunc<C> | undefined = undefined
+    updater: ContextUpdaterFunc<C> | undefined = undefined,
+    options: Partial<TClockBaseOptions> = {}
   ) {
     this.ctx = { ...ctx0, t: 0, dt: 0 };
     this.runner = runner;
     this.updater = updater ?? identity<C & { t: number; dt: number }>;
-    this.clock = new ClockBase();
+    this.clock = new ClockBase(options);
   }
 
   tick(t: number): void {

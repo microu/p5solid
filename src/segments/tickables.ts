@@ -16,8 +16,7 @@ export interface IParentClock extends IClock {
   addChild(child: ITickable): void;
   removeChild(child: ITickable): void;
 }
-
-type TClockBaseOptions = {
+export  type TClockBaseOptions = {
   tick0?: number;
   // origin in ticker scale (t0 in clock scale).
   // if undefined will be thetime of first tick
