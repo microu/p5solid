@@ -1,9 +1,9 @@
-export interface ITickable {
-  tick(t: number, dt: number): void;
+export interface ITimeTickable {
+  timeTick(t: number): void;
 }
 
-export interface IClockTickable {
-  clockTick(t: number): void;
+export interface ITickable {
+  tick(t: number, dt: number): void;
 }
 
 export interface IClock {
@@ -12,6 +12,9 @@ export interface IClock {
   readonly started: boolean;
   paused: boolean;
 }
+
+export interface ITimeTickableClock extends ITimeTickable, IClock {}
+export interface ITickableClock extends ITickable, IClock {}
 
 export type TClockBaseOptions = {
   tick0?: number;
@@ -31,7 +34,7 @@ const DEFAULT_TClockBaseOptions: TClockBaseOptions = {
   scale: 1,
 };
 
-export class ClockBase implements IClock, ITickable, IClockTickable {
+export class ClockBase implements IClock, ITickable, ITimeTickable {
   private _state:
     | ""
     | "initialized"
@@ -55,10 +58,10 @@ export class ClockBase implements IClock, ITickable, IClockTickable {
   }
 
   tick(t: number, _dt: number) {
-    this.clockTick(t);
+    this.timeTick(t);
   }
 
-  clockTick(t: number): void {
+  timeTick(t: number): void {
     if (this._state == "") {
       this._tick0 = this.options.tick0 ?? t;
       this._t0 = this.options.t0;
@@ -125,7 +128,7 @@ type TParentClockOptions = TClockBaseOptions;
 
 export class ParentClock
   extends ClockBase
-  implements ITickable, IClockTickable, IClock
+  implements ITickable, ITimeTickable, IClock
 {
   private _children: ITickable[] = [];
 
@@ -133,8 +136,8 @@ export class ParentClock
     super(options);
   }
 
-  clockTick(t: number): void {
-    super.clockTick(t);
+  timeTick(t: number): void {
+    super.timeTick(t);
     for (const child of this._children) {
       child.tick(this.t, this.dt);
     }

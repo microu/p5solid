@@ -1,10 +1,7 @@
 import p5 from "p5";
 import { resolveColor } from "../twconf";
-import { P5Runner } from "../../p5div/P5Runner";
-
+import { P5Runner } from "@src/p5div/P5Runner";
 export const sampleA = () => {
-
-  
   // parameters
   const bgcolor = resolveColor("slate-800");
   const colorHueList = [
@@ -20,7 +17,7 @@ export const sampleA = () => {
   const squareSize = 40;
   const squareCount = 9;
   // state
- 
+
   let t0 = 0;
   let colorHueIndex = 0;
   let colorHueChange = -10_000;
@@ -44,7 +41,12 @@ export const sampleA = () => {
     for (let i = 0; i < squareCount; i += 1) {
       const colorHue = (t - colorHueChange) / 500 > i ? colorHue1 : colorHue0;
       p.fill(resolveColor(`${colorHue}-${100 * (i + 1)}`));
-      p.rect(spacing + i * (spacing + squareSize), (p.height - squareSize)/2 , squareSize, squareSize);
+      p.rect(
+        spacing + i * (spacing + squareSize),
+        (p.height - squareSize) / 2,
+        squareSize,
+        squareSize
+      );
     }
   }
 

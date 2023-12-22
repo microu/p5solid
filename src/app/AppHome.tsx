@@ -6,7 +6,7 @@ import ContentBlock from "./ContentBlock";
 import { For } from "solid-js";
 
 function AppHome() {
-  const pages = [{ text: "Test layout", href: "./index_test_layout.html" }];
+  const pages = [{ text: "Test layout", href: "./index_test_layout.html" }, {text: "Tick Runnables", href:"./index_tick_runnables.html"}];
 
   return (
     <AppLayout title="P5 /Solid (step2)">
