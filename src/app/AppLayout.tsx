@@ -37,7 +37,7 @@ const AppLayout: Component<ParentProps<TProps>> = (props) => {
       <AppLayoutHeader title={props.title} nav={nav}></AppLayoutHeader>
       <main class="flex flex-row">
         <div class="flex-1">{left}</div>
-        <div class="w-[800px] bg-amber-900">{props.children}</div>
+        <div class="w-[800px] bg-slate-600">{props.children}</div>
         <div class="flex-1">{right}</div>
       </main>
       <AppLayoutFooter title={props.title}></AppLayoutFooter>

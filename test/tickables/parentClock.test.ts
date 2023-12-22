@@ -6,15 +6,15 @@ describe("ParentClock instance", function () {
     const pc = new ParentClock();
     expect(pc.started).toBe(false);
 
-    pc.timeTick(1000);
+    pc.clockTick(1000);
     expect(pc.started).toBe(true);
     expect(pc.t).toBe(0);
 
-    pc.timeTick(1100);
+    pc.clockTick(1100);
     expect(pc.started).toBe(true);
     expect(pc.t).toBe(100);
 
-    pc.timeTick(1150);
+    pc.clockTick(1150);
     expect(pc.started).toBe(true);
     expect(pc.t).toBe(150);
   });
@@ -23,10 +23,10 @@ describe("ParentClock instance", function () {
     const pc = new ParentClock({ tick0: 5000 });
     expect(pc.started).toBe(false);
 
-    pc.timeTick(1000);
+    pc.clockTick(1000);
     expect(pc.started).toBe(false);
 
-    pc.timeTick(5000);
+    pc.clockTick(5000);
     expect(pc.started).toBe(true);
     expect(pc.t).toBe(0);
   });
@@ -35,20 +35,20 @@ describe("ParentClock instance", function () {
     const pc = new ParentClock({ scale: 1 / 1000 });
     expect(pc.started).toBe(false);
 
-    pc.timeTick(1000);
+    pc.clockTick(1000);
     expect(pc.started).toBe(true);
     expect(pc.t).toBe(0);
 
-    pc.timeTick(1100);
+    pc.clockTick(1100);
     expect(pc.started).toBe(true);
     expect(pc.t).toBe(0.1);
 
     for (let i = 2; i < 1_000; i += 1) {
-      pc.timeTick(i * 1000);
+      pc.clockTick(i * 1000);
       expect(pc.started).toBe(true);
       expect(pc.t).toBe(i - 1);
 
-      pc.timeTick(i * 1000 + 100);
+      pc.clockTick(i * 1000 + 100);
       expect(pc.started).toBe(true);
       expect(pc.t).toBeCloseTo(i - 1 + 0.1);
     }
@@ -66,7 +66,7 @@ describe("ParentClock instance", function () {
     expect(cc1.started).toBe(false);
     expect(cc2.started).toBe(false);
 
-    pc.timeTick(0);
+    pc.clockTick(0);
     expect(pc.started).toBe(true);
     expect(cc1.started).toBe(true);
     expect(cc2.started).toBe(false);
@@ -74,7 +74,7 @@ describe("ParentClock instance", function () {
     expect(cc1.t).toBe(0);
     expect(cc2.t).toBe(0);
 
-    pc.timeTick(1000);
+    pc.clockTick(1000);
     expect(pc.started).toBe(true);
     expect(cc1.started).toBe(true);
     expect(cc2.started).toBe(false);
@@ -82,7 +82,7 @@ describe("ParentClock instance", function () {
     expect(cc1.t).toBe(100);
     expect(cc2.t).toBe(0);
 
-    pc.timeTick(2000);
+    pc.clockTick(2000);
     expect(pc.started).toBe(true);
     expect(cc1.started).toBe(true);
     expect(cc2.started).toBe(true);
@@ -90,7 +90,7 @@ describe("ParentClock instance", function () {
     expect(cc1.t).toBe(200);
     expect(cc2.t).toBe(0);
 
-    pc.timeTick(3000);
+    pc.clockTick(3000);
     expect(pc.started).toBe(true);
     expect(cc1.started).toBe(true);
     expect(cc2.started).toBe(true);
