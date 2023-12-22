@@ -2,8 +2,8 @@
 import { render } from "solid-js/web";
 
 import "./index.css";
-import AppHome from "./app/AppHome";
+import AppTestLayout from "./app/AppTestLayout";
 
 const [body] = document.getElementsByTagName("body");
 
-render(() => <AppHome />, body);
+render(() => <AppTestLayout />, body);
