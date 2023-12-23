@@ -3,12 +3,13 @@ import { buildP5TickRunnable } from "@src/p5div/P5TickRunable";
 import { ClockContext } from "@src/p5div/P5TickRunable";
 import p5 from "p5";
 import { resolveColor } from "../twconf";
-import { ClockBase, ITickRunnable } from "@src/tickables";
+import { ClockBase, ITickRunnable, TickRunnableEngine } from "@src/tickables";
 import { IPValue } from "@src/pvalue";
 import { PVSin } from "@src/pvalue/PVSin";
 import { colorChoices01 } from "./colorChoices";
 
 type TContext = {
+  p: p5;
   w: number;
   h: number;
   bgcolor: string;
@@ -63,6 +64,7 @@ class MovingSquare implements ITickRunnable<TContext>, IMovingSquareData {
   tickRun(t: number, dt: number, ctx: TContext): string {
     this.cx = this.pcx.v(t);
     this.rotate = this.protate.v(t);
+    this.draw(ctx.p);
     return t < this.eol ? "" : "!done";
   }
 
@@ -82,67 +84,7 @@ class MovingSquare implements ITickRunnable<TContext>, IMovingSquareData {
 }
 
 export function tickRunableSampleA(w: number, h: number): P5Runner {
-  const ctx0: TContext = {
-    w,
-    h,
-    bgcolor: resolveColor("slate-400"),
-    items: [],
-  };
-
-  function setup(p: p5, ctx: TContext) {
-    p.createCanvas(ctx.w, ctx.h);
-    p.frameRate(32);
-  }
-
-  function draw(p: p5, ctx: ClockContext<TContext>) {
-    p.background(ctx.bgcolor);
-    console.log("DRAW ITEMS:", ctx.items.length)
-    for (const item of ctx.items) {
-      item.draw(p);
-    }
-  }
-
-  function tickRun(t: number, dt: number, ctx: TContext) {
-    if (ctx.items.length == 0) {
-      ctx.items.push(
-        new MovingSquare(t, {
-          cx: ctx.w / 2,
-          cy: ctx.h / 2,
-          r: ctx.h * 0.2,
-          rotate: 0,
-          color: resolveColor("orange-500"),
-        })
-      );
-      ctx.items.push(
-        new MovingSquare(t, {
-          cx: ctx.w / 4,
-          cy: ctx.h / 2,
-          r: ctx.h * 0.3,
-          rotate: 0,
-          color: resolveColor("emerald-500"),
-        })
-      );
-
-      ctx.items.push(
-        new MovingSquare(t, {
-          cx: (ctx.w * 3) / 4,
-          cy: ctx.h / 2,
-          r: ctx.h * 0.1,
-          rotate: 0,
-          color: resolveColor("rose-700"),
-        })
-      );
-    }
-
-    for (let i = 0; i < ctx.items.length; i += 1) {
-      const item = ctx.items[i];
-      const r = item.tickRun(t, dt, ctx);
-      if (r == "!done") {
-        ctx.items[i] = replaceItem(t, ctx, item);
-      }
-    }
-    return "";
-  }
+  let engine: TickRunnableEngine<TContext>;
 
   function replaceItem(
     t: number,
@@ -161,13 +103,45 @@ export function tickRunableSampleA(w: number, h: number): P5Runner {
     return item;
   }
 
-  const clock = new ClockBase({ scale: 1 / 1000 });
+  function setup(p: p5) {
+    p.createCanvas(w, h);
+    p.frameRate(32);
+    const ctx0: TContext = {
+      p,
+      w,
+      h,
+      bgcolor: resolveColor("slate-500"),
+      items: [],
+    };
+    engine = new TickRunnableEngine(ctx0, [], {
+      clock: new ClockBase({ scale: 1 / 1000 }),
+      handleDone: (_e, t, ctx, child) => {
+        const newItem = replaceItem(t, ctx, child as MovingSquare);
+        console.log("handleDone",t, child, newItem);
+        return newItem;
+      },
+    });
 
-  return buildP5TickRunnable<TContext>({
-    ctx0,
-    clock,
-    setup,
-    draw,
-    run: { tickRun },
-  });
+    engine.appendChild({
+      tickRun: (_t, _dt, ctx) => {
+        ctx.p.background(ctx.bgcolor);
+        return "";
+      },
+    });
+    engine.appendChild(
+      new MovingSquare(0, {
+        cx: w / 2,
+        cy: h / 2,
+        r: h / 3,
+        rotate: 0,
+        color: "darkred",
+      })
+    );
+  }
+
+  function draw(p: p5) {
+    engine.timeTick(p.millis());
+  }
+
+  return new P5Runner(setup, draw);
 }
