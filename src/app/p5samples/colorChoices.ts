@@ -19,3 +19,8 @@ export const colorChoices01: string[] = [
   resolveColor("fuchsia-600"),
   resolveColor("fuchsia-900"),
 ];
+
+
+export function randomColorChoice01(): string {
+  return colorChoices01[Math.floor(Math.random() * colorChoices01.length)];
+}

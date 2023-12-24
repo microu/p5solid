@@ -1,6 +1,4 @@
 import { P5Runner } from "@src/p5div/P5Runner";
-import { buildP5TickRunnable } from "@src/p5div/P5TickRunable";
-import { ClockContext } from "@src/p5div/P5TickRunable";
 import p5 from "p5";
 import { resolveColor } from "../twconf";
 import { ClockBase, ITickRunnable, TickRunnableEngine } from "@src/tickables";
@@ -64,7 +62,9 @@ class MovingSquare implements ITickRunnable<TContext>, IMovingSquareData {
   tickRun(t: number, dt: number, ctx: TContext): string {
     this.cx = this.pcx.v(t);
     this.rotate = this.protate.v(t);
+
     this.draw(ctx.p);
+    
     return t < this.eol ? "" : "!done";
   }
 
