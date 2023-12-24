@@ -50,7 +50,7 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
       this.initialized = true;
     }
     const doneChildren = [] as number[];
-    console.log("Tick run Children:", this.children.length);
+
     for (let i = 0; i < this.children.length; i += 1) {
       const child = this.children[i];
       const r = child.tickRun(this.t, this.dt, this.ctx);

@@ -45,7 +45,7 @@ export function plotSinKeyPointsDec() {
       data.push(r);
     }
   }
-  console.log(dotsData);
+
 
   const marks = [
     Plot.ruleY([0]),

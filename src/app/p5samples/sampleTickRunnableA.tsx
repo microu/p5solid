@@ -117,7 +117,6 @@ export function tickRunableSampleA(w: number, h: number): P5Runner {
       clock: new ClockBase({ scale: 1 / 1000 }),
       handleDone: (_e, t, ctx, child) => {
         const newItem = replaceItem(t, ctx, child as MovingSquare);
-        console.log("handleDone",t, child, newItem);
         return newItem;
       },
     });

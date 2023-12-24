@@ -36,7 +36,7 @@ export function plotSinPeriodOffset() {
       data.push(r);
     }
   }
-  console.log(dotsData);
+
 
   const marks = [
     Plot.line(data, { x: "x", y: "y", stroke: "name" }),
