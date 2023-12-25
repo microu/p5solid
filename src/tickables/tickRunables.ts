@@ -4,11 +4,17 @@ export type TickRunnableFunc<C = any> = (
   t: number,
   dt: number,
   ctx: C
-) => string;
+) => undefined | string | EngineActionFunc<C>;
+
+export type EngineActionFunc<C = any> = (
+  engine: TickRunnableEngine<C>
+) => void;
 
 export interface ITickRunnable<C = any> {
   tickRun: TickRunnableFunc<C>;
 }
+
+export type TickRunnable<C = any> = ITickRunnable<C> | TickRunnableFunc<C>;
 
 export type TTickRunnableEngineOptions<C = any> = {
   clock?: IClock & ITimeTickable;
@@ -16,27 +22,27 @@ export type TTickRunnableEngineOptions<C = any> = {
   handleDone?: (
     engine: TickRunnableEngine<C>,
     t: number,
-    ctx:C,
-    child: ITickRunnable<C>
+    ctx: C,
+    child: TickRunnable<C>
   ) => ITickRunnable<C> | undefined;
 };
 
 const default_TTickRunnableEngineOptions: TTickRunnableEngineOptions = {};
 
 export class TickRunnableEngine<C> implements ITimeTickable, IClock {
-  private ctx: C;
-  private children: ITickRunnable<C>[] = [];
+  ctx: C;
+  private children: { child: TickRunnable<C>; run: TickRunnableFunc<C> }[] = [];
   private opt: TTickRunnableEngineOptions<C>;
   private clock: IClock & ITimeTickable;
   private initialized = false;
 
   constructor(
     ctx: C,
-    children: ITickRunnable<C>[],
+    children: TickRunnable<C>[],
     options: Partial<TTickRunnableEngineOptions> = {}
   ) {
     this.ctx = { ...ctx };
-    this.children.push(...children);
+    this.children.push(...children.map((c) => this.adaptTickRunnable(c)));
     this.opt = { ...default_TTickRunnableEngineOptions, ...options };
     this.clock = this.opt.clock ?? new ClockBase();
   }
@@ -49,51 +55,75 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
       }
       this.initialized = true;
     }
+
     const doneChildren = [] as number[];
+    const postActions: EngineActionFunc<C>[] = [];
 
     for (let i = 0; i < this.children.length; i += 1) {
       const child = this.children[i];
-      const r = child.tickRun(this.t, this.dt, this.ctx);
+      const r = child.run(this.t, this.dt, this.ctx);
       if (r == "!done") {
         if (this.opt.handleDone) {
-          const newChild = this.opt.handleDone(this, this.t, this.ctx, child);
+          const newChild = this.opt.handleDone(
+            this,
+            this.t,
+            this.ctx,
+            child.child
+          );
           if (newChild != undefined) {
-            this.children[i] = newChild;
+            console.log("New Child:", i, child, newChild);
+            this.children[i] = this.adaptTickRunnable(newChild);
           } else {
             doneChildren.push(i);
           }
         } else {
           doneChildren.push(i);
         }
+      } else if (typeof r == "function") {
+        postActions.push(r);
       }
     }
     for (let i = doneChildren.length - 1; i >= 0; i -= 1) {
       this.children.splice(doneChildren[i], 1);
     }
 
+    for (const postAction of postActions) {
+      postAction(this);
+    }
+
     return "";
   }
 
+  //
+  private adaptTickRunnable(tr: TickRunnable<C>): {
+    child: TickRunnable<C>;
+    run: TickRunnableFunc<C>;
+  } {
+    return typeof tr == "function"
+      ? { child: tr, run: tr }
+      : { child: tr, run: (t, dt, ctx) => tr.tickRun(t, dt, ctx) };
+  }
+
   // children
-  appendChild(child: ITickRunnable<C>) {
-    this.children.push(child);
+  appendChild(child: TickRunnable<C>) {
+    this.children.push(this.adaptTickRunnable(child));
   }
 
-  prependChild(child: ITickRunnable<C>) {
-    this.children.unshift(child);
+  prependChild(child: TickRunnable<C>) {
+    this.children.unshift(this.adaptTickRunnable(child));
   }
 
-  replaceChild(oldChild: ITickRunnable<C>, newChild: ITickRunnable<C>) {
-    const index = this.children.indexOf(oldChild);
+  deleteChild(child: TickRunnable<C>) {
+    const index = this.children.findIndex((c) => c.child == child);
     if (index >= 0) {
-      this.children[index] = newChild;
+      this.children.splice(index, 1);
     }
   }
 
-  deleteChild(child: ITickRunnable<C>) {
-    const index = this.children.indexOf(child);
+  replaceChild(oldChild: TickRunnable<C>, newChild: TickRunnable<C>) {
+    const index = this.children.findIndex((c) => c.child == oldChild);
     if (index >= 0) {
-      this.children.splice(index, 1);
+      this.children[index] = this.adaptTickRunnable(newChild);
     }
   }
 

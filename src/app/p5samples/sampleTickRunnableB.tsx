@@ -14,6 +14,7 @@ type TContext = {
 
 export function tickRunableSampleB(): P5Runner {
   let nextUpdate = 0;
+
   function update(t: number, _dt: number, ctx: TContext) {
     if (t >= nextUpdate) {
       if (Math.random() < 0.5) {
@@ -48,18 +49,17 @@ export function tickRunableSampleB(): P5Runner {
       colorb: randomColorChoice01(),
     };
 
-    return new TickRunnableEngine(
-      ctx,
-      [{ tickRun: draw }, { tickRun: update }],
-      {
-        clock: new ClockBase({ scale: 1 / 1000 }),
-        init: (t: number, dt: number, ctx: any) => {
-          nextUpdate = t + 1.5 + Math.random() * 3;
-          return "";
-        },
-      }
-    );
+    return new TickRunnableEngine(ctx, [draw, update], {
+      clock: new ClockBase({ scale: 1 / 1000 }),
+      init: (t: number, dt: number, ctx: any) => {
+        nextUpdate = t + 1.5 + Math.random() * 3;
+        return "";
+      },
+    });
   }
 
-  return p5TickRunnableEngine(engineBuilder, { size: { w: 700, h: 64 } });
+  return p5TickRunnableEngine(engineBuilder, {
+    size: { w: 700, h: 64 },
+    frameRate: 32,
+  });
 }
