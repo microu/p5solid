@@ -7,7 +7,8 @@ export type TickRunnableFunc<C = any> = (
 ) => undefined | string | EngineActionFunc<C>;
 
 export type EngineActionFunc<C = any> = (
-  engine: TickRunnableEngine<C>
+  engine: TickRunnableEngine<C>,
+  child: TickRunnable<C>
 ) => void;
 
 export interface ITickRunnable<C = any> {
@@ -57,7 +58,10 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
     }
 
     const doneChildren = [] as number[];
-    const postActions: EngineActionFunc<C>[] = [];
+    const postActions: {
+      action: EngineActionFunc<C>;
+      child: TickRunnable<C>;
+    }[] = [];
 
     for (let i = 0; i < this.children.length; i += 1) {
       const child = this.children[i];
@@ -80,7 +84,7 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
           doneChildren.push(i);
         }
       } else if (typeof r == "function") {
-        postActions.push(r);
+        postActions.push({ action: r, child: child.child });
       }
     }
     for (let i = doneChildren.length - 1; i >= 0; i -= 1) {
@@ -88,7 +92,7 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
     }
 
     for (const postAction of postActions) {
-      postAction(this);
+      postAction.action(this, postAction.child);
     }
 
     return "";

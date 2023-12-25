@@ -6,11 +6,10 @@ import {
   EngineActionFunc,
   ITickRunnable,
   TickRunnableEngine,
-  TickRunnableFunc,
 } from "@src/tickables";
 import { IPValue } from "@src/pvalue";
 import { PVSin } from "@src/pvalue/PVSin";
-import { colorChoices01 } from "./colorChoices";
+import { randomColorChoice01 } from "./colorChoices";
 import { p5TickRunnableEngine } from "@src/p5div/P5TickRunable";
 
 type TContext = {
@@ -112,12 +111,12 @@ export function tickRunableSampleA(w: number, h: number): P5Runner {
       cy: item.cy,
       r: ctx.h * (0.2 + Math.random() * 0.25),
       rotate: item.rotate,
-      color: colorChoices01[Math.floor(Math.random() * colorChoices01.length)],
+      color: randomColorChoice01(),
     };
 
     item = new MovingSquare(t, data);
-    item.eolAction = (e) => {
-      e.replaceChild(item, replaceItem(e.t, e.ctx, item));
+    item.eolAction = (e, child) => {
+      e.replaceChild(child, replaceItem(e.t, e.ctx, child as MovingSquare));
     };
 
     return item;
@@ -134,10 +133,6 @@ export function tickRunableSampleA(w: number, h: number): P5Runner {
 
     const engine = new TickRunnableEngine(ctx0, [], {
       clock: new ClockBase({ scale: 1 / 1000 }),
-      // handleDone: (_e, t, ctx, child) => {
-      //   const newItem = replaceItem(t, ctx, child as MovingSquare);
-      //   return newItem;
-      // },
     });
 
     engine.appendChild({
@@ -155,8 +150,8 @@ export function tickRunableSampleA(w: number, h: number): P5Runner {
       color: "darkred",
     });
 
-    square.eolAction = (e) => {
-      e.replaceChild(square, replaceItem(e.t, e.ctx, square));
+    square.eolAction = (e, child) => {
+      e.replaceChild(child, replaceItem(e.t, e.ctx, child as MovingSquare));
     };
 
     engine.appendChild(square);
