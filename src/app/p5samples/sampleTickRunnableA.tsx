@@ -16,6 +16,7 @@ import {
 import { PVSin } from "@src/pvalue/PVSin";
 import { randomColorChoice01 } from "./colorChoices";
 import { p5TickRunnableEngine } from "@src/p5div/P5TickRunable";
+import { PVSegments } from "@src/pvalue/PVSegments";
 
 type TContext = {
   p: p5;
@@ -33,6 +34,12 @@ interface IMovingSquareData {
   color: string;
 }
 
+type TPVMovingSquareData = {
+  [Properties in keyof IMovingSquareData]?: IPValue<
+    IMovingSquareData[Properties]
+  >;
+};
+
 class MovingSquare implements ITickRunnable<TContext>, IMovingSquareData {
   t = -1;
   cx: number;
@@ -43,37 +50,31 @@ class MovingSquare implements ITickRunnable<TContext>, IMovingSquareData {
 
   t0: number;
 
-  pcx: IPValue<number>;
-  protate: IPValue<number>;
-  pr: IPValue<number>;
-  pcolor: IPValue<string>;
+  pv: TPVMovingSquareData = {};
 
   eol: number | undefined;
   eolAction: undefined | EngineActionFunc<TContext>;
 
   constructor(t0: number, data: IMovingSquareData) {
     this.t0 = t0;
-    this.cx = data.cx;
+    this.t = t0;
+    this.cx = 0;
     this.cy = data.cy;
     this.r = data.r;
     this.rotate = data.rotate;
     this.color = data.color;
 
-    this.pcx = new PVSin({
-      min: this.cx - 30,
-      max: this.cx + 30,
-      period: 1.5 + Math.random() * 1.5,
-      keyPoint: { t: this.t0, v: this.cx },
-    });
-
-    this.protate = new PVSin({
+    const dcx = 0.6;
+    this.moveTo(dcx, { cx: data.cx });
+    this.pv.rotate = new PVSin({
       min: this.rotate - Math.PI / 2,
       max: this.rotate + Math.PI / 2,
       period: 5 + Math.random() * 5,
       keyPoint: { t: this.t0, v: this.rotate },
     });
-    this.pr = new PVConstant(this.r);
-    this.pcolor = new PVConstant(this.color);
+
+    this.pv.r = new PVConstant(this.r);
+    this.pv.color = new PVConstant(this.color);
   }
 
   tickRun(
@@ -82,10 +83,12 @@ class MovingSquare implements ITickRunnable<TContext>, IMovingSquareData {
     ctx: TContext
   ): string | undefined | EngineActionFunc<TContext> {
     this.t = t;
-    this.cx = this.pcx.v(t);
-    this.rotate = this.protate.v(t);
-    this.r = this.pr.v(t);
-    this.color = this.pcolor.v(t);
+
+    for (const [name, pv] of Object.entries(this.pv)) {
+      // @ts-ignore
+      this[name] = pv.v(t);
+    }
+
     this.draw(ctx.p);
 
     if (this.eol != undefined && t > this.eol) {
@@ -111,15 +114,40 @@ class MovingSquare implements ITickRunnable<TContext>, IMovingSquareData {
     p.endShape(p.CLOSE);
   }
 
+  moveTo(d: number, data: Partial<IMovingSquareData>) {
+    const t0 = this.t;
+    const t1 = this.t + d;
+    if ("cx" in data) {
+      const v0 = this.cx;
+      const v1 = data.cx!;
+      this.pv.cx = new PVSegments([
+        {
+          b: t1,
+          pv: new PVInterpolateNumber([
+            { t: t0, v: v0 },
+            { t: t1, v: v1 },
+          ]),
+        },
+        {
+          pv: new PVSin({
+            min: v1 - 30,
+            max: v1 + 30,
+            keyPoint: { t: t1, v: v1 },
+          }),
+        },
+      ]);
+    }
+  }
+
   triggerEOL(t: number, data: IMovingSquareData) {
-    this.pcolor = new PVInterpolateColor(
+    this.pv.color = new PVInterpolateColor(
       [
         { t: this.t, v: this.color },
         { t: t, v: data.color },
       ],
       { afterMode: "constant" }
     );
-    this.pr = new PVInterpolateNumber(
+    this.pv.r = new PVInterpolateNumber(
       [
         { t: this.t, v: this.r },
         { t: t, v: data.r },
