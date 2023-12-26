@@ -1,3 +1,4 @@
+import Heap from "heap-js";
 import { ClockBase, IClock, ITimeTickable } from ".";
 
 export type TickRunnableFunc<C = any> = (
@@ -8,7 +9,7 @@ export type TickRunnableFunc<C = any> = (
 
 export type EngineActionFunc<C = any> = (
   engine: TickRunnableEngine<C>,
-  child: TickRunnable<C>
+  child?: TickRunnable<C>
 ) => void;
 
 export interface ITickRunnable<C = any> {
@@ -28,6 +29,12 @@ export type TTickRunnableEngineOptions<C = any> = {
   ) => ITickRunnable<C> | undefined;
 };
 
+type TEvent<C> = {
+  t: number;
+  action: EngineActionFunc<C>;
+  child?: TickRunnable<C>;
+};
+
 const default_TTickRunnableEngineOptions: TTickRunnableEngineOptions = {};
 
 export class TickRunnableEngine<C> implements ITimeTickable, IClock {
@@ -36,6 +43,7 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
   private opt: TTickRunnableEngineOptions<C>;
   private clock: IClock & ITimeTickable;
   private initialized = false;
+  private events: Heap<TEvent<C>>;
 
   constructor(
     ctx: C,
@@ -46,6 +54,8 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
     this.children.push(...children.map((c) => this.adaptTickRunnable(c)));
     this.opt = { ...default_TTickRunnableEngineOptions, ...options };
     this.clock = this.opt.clock ?? new ClockBase();
+
+    this.events = new Heap<TEvent<C>>((a, b) => a.t - b.t);
   }
 
   timeTick(t: number): string {
@@ -56,6 +66,17 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
       }
       this.initialized = true;
     }
+
+    // run events
+    while (
+      this.events.peek() != undefined &&
+      this.events.peek()!.t <= this.t
+    ) {
+      const e = this.events.pop()!;
+      e.action(this, e.child)
+    }
+
+    // run childrens
 
     const doneChildren = [] as number[];
     const postActions: {
@@ -150,5 +171,14 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
 
   set paused(v: boolean) {
     this.clock.paused = v;
+  }
+
+  // events
+  scheduleAction(
+    t: number,
+    action: EngineActionFunc<C>,
+    item?: TickRunnable<C>
+  ) {
+    this.events.push({ t, action, child: item });
   }
 }

@@ -116,7 +116,7 @@ export function tickRunableSampleA(w: number, h: number): P5Runner {
 
     item = new MovingSquare(t, data);
     item.eolAction = (e, child) => {
-      e.replaceChild(child, replaceItem(e.t, e.ctx, child as MovingSquare));
+      e.replaceChild(child!, replaceItem(e.t, e.ctx, child as MovingSquare));
     };
 
     return item;
@@ -151,7 +151,7 @@ export function tickRunableSampleA(w: number, h: number): P5Runner {
     });
 
     square.eolAction = (e, child) => {
-      e.replaceChild(child, replaceItem(e.t, e.ctx, child as MovingSquare));
+      e.replaceChild(child!, replaceItem(e.t, e.ctx, child as MovingSquare));
     };
 
     engine.appendChild(square);
