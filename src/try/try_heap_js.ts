@@ -1,4 +1,4 @@
-import Heap from "heap-js";
+import  {Heap} from "heap-js";
 
 type TEvent = { t: number; name: string };
 
@@ -13,5 +13,7 @@ for (let i = 0; i < 100; i += 1) {
 }
 
 while (h.length > 0) {
-  console.log(`- ${h.pop()}`);
+  const event = h.peek();
+  console.log(`- [${h.length}] ${event!.name}  ${event!.t}`);
+  h.pop()
 }
