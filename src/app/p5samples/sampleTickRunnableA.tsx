@@ -7,7 +7,12 @@ import {
   ITickRunnable,
   TickRunnableEngine,
 } from "@src/tickables";
-import { IPValue } from "@src/pvalue";
+import {
+  IPValue,
+  PVConstant,
+  PVInterpolateColor,
+  PVInterpolateNumber,
+} from "@src/pvalue";
 import { PVSin } from "@src/pvalue/PVSin";
 import { randomColorChoice01 } from "./colorChoices";
 import { p5TickRunnableEngine } from "@src/p5div/P5TickRunable";
@@ -29,17 +34,21 @@ interface IMovingSquareData {
 }
 
 class MovingSquare implements ITickRunnable<TContext>, IMovingSquareData {
+  t = -1;
   cx: number;
   cy: number;
   r: number;
   rotate: number;
   color: string;
+
   t0: number;
 
   pcx: IPValue<number>;
   protate: IPValue<number>;
+  pr: IPValue<number>;
+  pcolor: IPValue<string>;
 
-  eol: number;
+  eol: number | undefined;
   eolAction: undefined | EngineActionFunc<TContext>;
 
   constructor(t0: number, data: IMovingSquareData) {
@@ -49,7 +58,6 @@ class MovingSquare implements ITickRunnable<TContext>, IMovingSquareData {
     this.r = data.r;
     this.rotate = data.rotate;
     this.color = data.color;
-    this.eol = t0 + 4 + Math.random() * 4;
 
     this.pcx = new PVSin({
       min: this.cx - 30,
@@ -64,6 +72,8 @@ class MovingSquare implements ITickRunnable<TContext>, IMovingSquareData {
       period: 5 + Math.random() * 5,
       keyPoint: { t: this.t0, v: this.rotate },
     });
+    this.pr = new PVConstant(this.r);
+    this.pcolor = new PVConstant(this.color);
   }
 
   tickRun(
@@ -71,12 +81,14 @@ class MovingSquare implements ITickRunnable<TContext>, IMovingSquareData {
     _dt: number,
     ctx: TContext
   ): string | undefined | EngineActionFunc<TContext> {
+    this.t = t;
     this.cx = this.pcx.v(t);
     this.rotate = this.protate.v(t);
-
+    this.r = this.pr.v(t);
+    this.color = this.pcolor.v(t);
     this.draw(ctx.p);
 
-    if (t >= this.eol) {
+    if (this.eol != undefined && t > this.eol) {
       if (this.eolAction) {
         return this.eolAction;
       } else {
@@ -98,28 +110,101 @@ class MovingSquare implements ITickRunnable<TContext>, IMovingSquareData {
     }
     p.endShape(p.CLOSE);
   }
+
+  triggerEOL(t: number, data: IMovingSquareData) {
+    this.pcolor = new PVInterpolateColor(
+      [
+        { t: this.t, v: this.color },
+        { t: t, v: data.color },
+      ],
+      { afterMode: "constant" }
+    );
+    this.pr = new PVInterpolateNumber(
+      [
+        { t: this.t, v: this.r },
+        { t: t, v: data.r },
+      ],
+      { afterMode: "constant" }
+    );
+
+    this.eol = t;
+  }
 }
 
 export function tickRunableSampleA(w: number, h: number): P5Runner {
-  function replaceItem(
-    t: number,
-    ctx: TContext,
-    item: MovingSquare
-  ): MovingSquare {
+  function generateSquareData(data0: IMovingSquareData): IMovingSquareData {
+    let deltar =
+      Math.sign(Math.random() - 0.5) * (data0.r * (0.1 + Math.random() / 2));
+
+    if (data0.r + deltar > h * 0.48) {
+      deltar = -Math.abs(deltar);
+    } else if (data0.r + deltar < h * 0.1) {
+      deltar = Math.abs(deltar);
+    }
+
     const data: IMovingSquareData = {
-      cx: item.cx,
-      cy: item.cy,
-      r: ctx.h * (0.2 + Math.random() * 0.25),
-      rotate: item.rotate,
+      cx: data0.cx,
+      cy: data0.cy,
+      r: data0.r + deltar,
+      rotate: 0,
       color: randomColorChoice01(),
     };
+    return data;
+  }
 
-    item = new MovingSquare(t, data);
-    item.eolAction = (e, child) => {
-      e.replaceChild(child!, replaceItem(e.t, e.ctx, child as MovingSquare));
+  function replaceSquare(
+    t: number,
+    ctx: TContext,
+    e: TickRunnableEngine<TContext>,
+    currentSquare: MovingSquare
+  ): MovingSquare {
+    const d = 2;
+    const newData: IMovingSquareData = generateSquareData(currentSquare);
+    currentSquare.triggerEOL(t + d, newData);
+
+    currentSquare.eolAction = (e, _child) => {
+      const newSquare = new MovingSquare(t + d, currentSquare);
+      e.replaceChild(currentSquare, newSquare);
+      e.scheduleAction(
+        t + d + Math.random() * 3 + 3,
+        (e1, child) => {
+          replaceSquare(e1.t, e1.ctx, e1, child as MovingSquare);
+        },
+        newSquare
+      );
     };
 
-    return item;
+    return currentSquare;
+  }
+
+  function scheduleInitialSquare(
+    engine: TickRunnableEngine<TContext>,
+    t: number,
+    cx: number
+  ) {
+    const square = new MovingSquare(t, {
+      cx,
+      cy: h / 2,
+      r: h / 3,
+      rotate: 0,
+      color: randomColorChoice01(),
+    });
+
+    engine.scheduleAction(t, (e) => {
+      square.eolAction = (e, child) => {
+        e.replaceChild(
+          child!,
+          replaceSquare(e.t, e.ctx, engine, child as MovingSquare)
+        );
+      };
+      e.appendChild(square);
+    });
+
+    const eol = t + 3 + Math.random() * 2;
+
+    engine.scheduleAction(eol, (e) => {
+      replaceSquare(eol, e.ctx, e, square);
+    });
   }
 
   function engineBuilder(p: p5) {
@@ -142,49 +227,9 @@ export function tickRunableSampleA(w: number, h: number): P5Runner {
       },
     });
 
-    engine.scheduleAction(3, (e) => {
-      const square = new MovingSquare(3, {
-        cx: w / 4,
-        cy: h / 2,
-        r: h / 3,
-        rotate: 0,
-        color: "darkorange",
-      });
-      square.eolAction = (e, child) => {
-        e.replaceChild(child!, replaceItem(e.t, e.ctx, child as MovingSquare));
-      };
-      e.appendChild(square);
-    });
-
-    engine.scheduleAction(4, (e) => {
-      const square = new MovingSquare(4, {
-        cx: w / 2,
-        cy: h / 2,
-        r: h / 3,
-        rotate: 0,
-        color: "darkred",
-      });
-      square.eolAction = (e, child) => {
-        e.replaceChild(child!, replaceItem(e.t, e.ctx, child as MovingSquare));
-      };
-      e.appendChild(square);
-    });
-
-
-    engine.scheduleAction(5, (e) => {
-      const square = new MovingSquare(5, {
-        cx: w *3 / 4,
-        cy: h / 2,
-        r: h / 3,
-        rotate: 0,
-        color: "darkolivegreen",
-      });
-      square.eolAction = (e, child) => {
-        e.replaceChild(child!, replaceItem(e.t, e.ctx, child as MovingSquare));
-      };
-      e.appendChild(square);
-    });
-
+    scheduleInitialSquare(engine, 3, w / 4);
+    scheduleInitialSquare(engine, 4, w / 2);
+    scheduleInitialSquare(engine, 5, (w * 3) / 4);
 
     return engine;
   }
