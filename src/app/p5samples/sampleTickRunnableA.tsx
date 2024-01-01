@@ -3,7 +3,7 @@ import p5 from "p5";
 import { resolveColor } from "../twconf";
 import { ClockBase, TickRunnableEngine } from "@src/tickables";
 import { randomColorChoice01 } from "./colorChoices";
-import { p5TickRunnableEngine } from "@src/p5div/P5TickRunable";
+import { p5TickRunnableEngineRunner } from "@src/p5div/P5TickRunable";
 import { IMovingSquareData, MovingSquare } from "./MovingSquare";
 
 type TContext = {
@@ -14,7 +14,10 @@ type TContext = {
   items: MovingSquare<TContext>[];
 };
 
-export function tickRunableSampleA(w: number, h: number): P5Runner {
+export function tickRunableSampleA(
+  w: number,
+  h: number
+): [P5Runner,()=> TickRunnableEngine<TContext>] {
   function generateSquareData(data0: IMovingSquareData): IMovingSquareData {
     let deltar =
       Math.sign(Math.random() - 0.5) * (data0.r * (0.1 + Math.random() / 2));
@@ -118,8 +121,12 @@ export function tickRunableSampleA(w: number, h: number): P5Runner {
     return engine;
   }
 
-  return p5TickRunnableEngine(engineBuilder, {
+  const [runner, engine] = p5TickRunnableEngineRunner(engineBuilder, {
     size: { w, h },
     frameRate: 32,
   });
+
+  console.log("SAMPLE A:", runner, engine)
+
+  return [runner, engine];
 }

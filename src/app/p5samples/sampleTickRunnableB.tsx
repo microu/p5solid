@@ -1,5 +1,5 @@
 import { P5Runner } from "@src/p5div/P5Runner";
-import { p5TickRunnableEngine } from "@src/p5div/P5TickRunable";
+import { p5TickRunnableEngineRunner } from "@src/p5div/P5TickRunable";
 import { ClockBase, TickRunnableEngine } from "@src/tickables";
 import p5 from "p5";
 import { randomColorChoice01 } from "./colorChoices";
@@ -58,8 +58,10 @@ export function tickRunableSampleB(): P5Runner {
     });
   }
 
-  return p5TickRunnableEngine(engineBuilder, {
+  const [runner, engine] = p5TickRunnableEngineRunner(engineBuilder, {
     size: { w: 700, h: 64 },
     frameRate: 32,
   });
+
+  return runner;
 }

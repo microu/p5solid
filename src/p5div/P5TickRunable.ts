@@ -13,10 +13,10 @@ export type TP5TickRunnableEngineOptions = {
   frameRate?: number;
 };
 
-export function p5TickRunnableEngine<C extends IP5Context>(
+export function p5TickRunnableEngineRunner<C extends IP5Context>(
   engineBuilder: (p: p5) => TickRunnableEngine<C>,
   options: TP5TickRunnableEngineOptions = {}
-): P5Runner {
+): [P5Runner, ()=>TickRunnableEngine<C>] {
   let engine: TickRunnableEngine<C>;
 
   function setup(p: p5) {
@@ -34,5 +34,5 @@ export function p5TickRunnableEngine<C extends IP5Context>(
     engine.timeTick(p.millis());
   }
 
-  return new P5Runner(setup, draw);
+  return [new P5Runner(setup, draw),()=> engine!];
 }
