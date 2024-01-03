@@ -38,7 +38,7 @@ type TEvent<C> = {
 const default_TTickRunnableEngineOptions: TTickRunnableEngineOptions = {};
 
 export class TickRunnableEngine<C> implements ITimeTickable, IClock {
-  ctx: C;
+  ctx: C | undefined;
   private children: { child: TickRunnable<C>; run: TickRunnableFunc<C> }[] = [];
   private opt: TTickRunnableEngineOptions<C>;
   private clock: IClock & ITimeTickable;
@@ -46,11 +46,9 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
   private events: Heap<TEvent<C>>;
 
   constructor(
-    ctx: C,
     children: TickRunnable<C>[],
     options: Partial<TTickRunnableEngineOptions> = {}
   ) {
-    this.ctx = { ...ctx };
     this.children.push(...children.map((c) => this.adaptTickRunnable(c)));
     this.opt = { ...default_TTickRunnableEngineOptions, ...options };
     this.clock = this.opt.clock ?? new ClockBase();
@@ -58,8 +56,17 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
     this.events = new Heap<TEvent<C>>((a, b) => a.t - b.t);
   }
 
+  init(ctx0: C) {
+    this.ctx = { ...ctx0 };
+  }
+
   timeTick(t: number): string {
     this.clock.timeTick(t);
+
+    if (this.ctx == undefined) {
+      return "";
+    }
+
     if (!this.initialized) {
       if (this.opt.init) {
         this.opt.init(this.t, this.dt, this.ctx);
@@ -68,12 +75,9 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
     }
 
     // run events
-    while (
-      this.events.peek() != undefined &&
-      this.events.peek()!.t <= this.t
-    ) {
+    while (this.events.peek() != undefined && this.events.peek()!.t <= this.t) {
       const e = this.events.pop()!;
-      e.action(this, e.child)
+      e.action(this, e.child);
     }
 
     // run childrens

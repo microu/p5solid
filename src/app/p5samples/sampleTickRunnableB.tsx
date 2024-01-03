@@ -1,18 +1,18 @@
 import { P5Runner } from "@src/p5div/P5Runner";
-import { p5TickRunnableEngineRunner1 } from "@src/p5div/P5TickRunable";
+import { p5TickRunnableEngineRunner } from "@src/p5div/P5TickRunable";
 import { ClockBase, TickRunnableEngine } from "@src/tickables";
 import p5 from "p5";
 import { randomColorChoice01 } from "./colorChoices";
 import { resolveColor } from "../twconf";
 
 type TContext = {
-  p?: p5;
+  p: p5;
   bgcolor: string;
   colora: string;
   colorb: string;
 };
 
-export function tickRunableSampleB() : [P5Runner, TickRunnableEngine<TContext> ]{
+export function tickRunableSampleB(): [P5Runner, TickRunnableEngine<TContext>] {
   let nextUpdate = 0;
 
   function update(t: number, _dt: number, ctx: TContext) {
@@ -41,13 +41,13 @@ export function tickRunableSampleB() : [P5Runner, TickRunnableEngine<TContext> ]
     return "";
   }
 
-  const ctx: TContext = {
+  const ctx: Omit<TContext, "p"> = {
     bgcolor: resolveColor("slate-300"),
     colora: randomColorChoice01(),
     colorb: randomColorChoice01(),
   };
 
-  const engine = new TickRunnableEngine(ctx, [draw, update], {
+  const engine = new TickRunnableEngine<TContext>([draw, update], {
     clock: new ClockBase({ scale: 1 / 1000 }),
     init: (t: number, dt: number, ctx: any) => {
       nextUpdate = t + 1.5 + Math.random() * 3;
@@ -55,7 +55,7 @@ export function tickRunableSampleB() : [P5Runner, TickRunnableEngine<TContext> ]
     },
   });
 
-  const runner = p5TickRunnableEngineRunner1(engine, {
+  const runner = p5TickRunnableEngineRunner(engine, ctx, {
     size: { w: 700, h: 64 },
     frameRate: 32,
   });

@@ -17,7 +17,7 @@ type TContext = {
 export function tickRunableSampleA(
   w: number,
   h: number
-): [P5Runner,()=> TickRunnableEngine<TContext>] {
+): [P5Runner, TickRunnableEngine<TContext>] {
   function generateSquareData(data0: IMovingSquareData): IMovingSquareData {
     let deltar =
       Math.sign(Math.random() - 0.5) * (data0.r * (0.1 + Math.random() / 2));
@@ -54,7 +54,7 @@ export function tickRunableSampleA(
       e.scheduleAction(
         t + d + Math.random() * 3 + 3,
         (e1, child) => {
-          replaceSquare(e1.t, e1.ctx, e1, child as MovingSquare<TContext>);
+          replaceSquare(e1.t, e1.ctx!, e1, child as MovingSquare<TContext>);
         },
         newSquare
       );
@@ -80,7 +80,7 @@ export function tickRunableSampleA(
       square.eolAction = (e, child) => {
         e.replaceChild(
           child!,
-          replaceSquare(e.t, e.ctx, engine, child as MovingSquare<TContext>)
+          replaceSquare(e.t, e.ctx!, engine, child as MovingSquare<TContext>)
         );
       };
       e.appendChild(square);
@@ -90,26 +90,25 @@ export function tickRunableSampleA(
     const eol = t + 3 + Math.random() * 2;
 
     engine.scheduleAction(eol, (e) => {
-      replaceSquare(eol, e.ctx, e, square);
+      replaceSquare(eol, e.ctx!, e, square);
     });
   }
 
-  function engineBuilder(p: p5) {
-    const ctx0: TContext = {
-      p,
+    const ctx0: Omit<TContext, "p"> = {
       w,
       h,
       bgcolor: resolveColor("slate-500"),
       items: [],
     };
 
-    const engine = new TickRunnableEngine(ctx0, [], {
+    const engine = new TickRunnableEngine<TContext>([], {
       clock: new ClockBase({ scale: 1 / 1000 }),
     });
 
+
     engine.appendChild({
       tickRun: (_t, _dt, ctx) => {
-        ctx.p.background(ctx.bgcolor);
+        ctx!.p.background(ctx!.bgcolor);
         return "";
       },
     });
@@ -118,10 +117,8 @@ export function tickRunableSampleA(
     scheduleInitialSquare(engine, 4, w / 2);
     scheduleInitialSquare(engine, 5, (w * 3) / 4);
 
-    return engine;
-  }
 
-  const [runner, engine] = p5TickRunnableEngineRunner(engineBuilder, {
+  const runner= p5TickRunnableEngineRunner(engine, ctx0,{
     size: { w, h },
     frameRate: 32,
   });

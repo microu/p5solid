@@ -10,7 +10,7 @@ const [running, setRunning] = createSignal(true);
 function AppTickRunnables() {
   const pauseButtonText = () => (running() ? "Pause" : "Start");
 
-  const [runnerA, getEngineA] = tickRunableSampleA(600, 90);
+  const [runnerA, engineA] = tickRunableSampleA(600, 90);
   const [runnerB, engineB] = tickRunableSampleB();
 
 
@@ -18,7 +18,7 @@ function AppTickRunnables() {
 
   function toogleRun() {
     setRunning(!running());
-    getEngineA().paused = !running()
+    engineA.paused = !running()
   }
   
   return (
