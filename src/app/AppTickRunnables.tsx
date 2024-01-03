@@ -11,6 +11,8 @@ function AppTickRunnables() {
   const pauseButtonText = () => (running() ? "Pause" : "Start");
 
   const [runnerA, getEngineA] = tickRunableSampleA(600, 90);
+  const [runnerB, engineB] = tickRunableSampleB();
+
 
   // console.log(runnerA, engineA)
 
@@ -31,7 +33,7 @@ function AppTickRunnables() {
             {pauseButtonText()}
           </button>
         </div>
-        <P5Div runner={tickRunableSampleB()}></P5Div>
+        <P5Div runner={runnerB}></P5Div>
       </div>
     </AppLayout>
   );
