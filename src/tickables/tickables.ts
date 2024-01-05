@@ -1,9 +1,9 @@
-export interface ITimeTickable {
-  timeTick(t: number): void;
+export interface ITickable {
+  tick(t: number): void;
 }
 
-export interface ITickable {
-  tick(t: number, dt: number): void;
+export interface IDTickable {
+  dtick(t: number, dt: number): void;
 }
 
 export interface IClock {
@@ -13,8 +13,8 @@ export interface IClock {
   paused: boolean;
 }
 
-export interface ITimeTickableClock extends ITimeTickable, IClock {}
 export interface ITickableClock extends ITickable, IClock {}
+export interface IDTickableClock extends IDTickable, IClock {}
 
 export type TClockBaseOptions = {
   tick0?: number;
@@ -34,7 +34,7 @@ const DEFAULT_TClockBaseOptions: TClockBaseOptions = {
   scale: 1,
 };
 
-export class ClockBase implements IClock, ITickable, ITimeTickable {
+export class ClockBase implements IClock, IDTickable, ITickable {
   private _state:
     | ""
     | "initialized"
@@ -57,11 +57,11 @@ export class ClockBase implements IClock, ITickable, ITimeTickable {
     this._scale = this.options.scale;
   }
 
-  tick(t: number, _dt: number) {
-    this.timeTick(t);
+  dtick(t: number, _dt: number) {
+    this.tick(t);
   }
 
-  timeTick(t: number): void {
+  tick(t: number): void {
     if (this._state == "") {
       this._tick0 = this.options.tick0 ?? t;
       this._t0 = this.options.t0;
@@ -128,32 +128,32 @@ type TParentClockOptions = TClockBaseOptions;
 
 export class ParentClock
   extends ClockBase
-  implements ITickable, ITimeTickable, IClock
+  implements IDTickable, ITickable, IClock
 {
-  private _children: ITickable[] = [];
+  private _children: IDTickable[] = [];
 
   constructor(options: Partial<TParentClockOptions> = {}) {
     super(options);
   }
 
-  timeTick(t: number): void {
-    super.timeTick(t);
+  tick(t: number): void {
+    super.tick(t);
     for (const child of this._children) {
-      child.tick(this.t, this.dt);
+      child.dtick(this.t, this.dt);
     }
   }
 
-  tick(t: number, dt: number): void {
-    super.tick(t, dt);
+  dtick(t: number, dt: number): void {
+    super.dtick(t, dt);
     for (const child of this._children) {
-      child.tick(this.t, this.dt);
+      child.dtick(this.t, this.dt);
     }
   }
 
-  addChild(child: ITickable): void {
+  addChild(child: IDTickable): void {
     this._children.push(child);
   }
-  removeChild(child: ITickable): void {
+  removeChild(child: IDTickable): void {
     const pos = this._children.indexOf(child);
     if (pos >= 0) {
       this._children.splice(pos, 1);

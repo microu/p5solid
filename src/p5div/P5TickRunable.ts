@@ -1,4 +1,4 @@
-import { TTickRunnableEngineOptions, TickRunnable, TickRunnableEngine } from "@src/tickables";
+import { TTickRunnableEngineOptions, CTickable, TickRunnableEngine } from "@src/tickables";
 import p5 from "p5";
 import { P5Runner } from "./P5Runner";
 
@@ -60,7 +60,7 @@ export function p5TickRunnableEngineRunner<C extends IP5Context>(
   }
 
   function draw(p: p5) {
-    engine.timeTick(p.millis());
+    engine.tick(p.millis());
   }
 
   return new P5Runner(setup, draw);

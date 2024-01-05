@@ -107,7 +107,7 @@ export function tickRunableSampleA(
 
 
     engine.appendChild({
-      tickRun: (_t, _dt, ctx) => {
+      ctick: (_t, _dt, ctx) => {
         ctx!.p.background(ctx!.bgcolor);
         return "";
       },

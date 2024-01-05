@@ -1,55 +1,59 @@
 import Heap from "heap-js";
-import { ClockBase, IClock, ITimeTickable } from ".";
+import { ClockBase, IClock, ITickable } from ".";
 
-export type TickRunnableFunc<C = any> = (
+export type CTickableFunc<C = any> = (
   t: number,
   dt: number,
   ctx: C
 ) => undefined | string | EngineActionFunc<C>;
 
-export type EngineActionFunc<C = any> = (
-  engine: TickRunnableEngine<C>,
-  child?: TickRunnable<C>
-) => void;
-
-export interface ITickRunnable<C = any> {
-  tickRun: TickRunnableFunc<C>;
+export interface ICTickable<C = any> {
+  ctick: CTickableFunc<C>;
 }
 
-export type TickRunnable<C = any> = ITickRunnable<C> | TickRunnableFunc<C>;
+export type CTickable<C = any> = ICTickable<C> | CTickableFunc<C>;
+
+export function ctickableFunc<C>(ct: CTickable<C>): CTickableFunc<C> {
+  return typeof ct == "function" ? ct : (t, dt, ctx) => ct.ctick(t, dt, ctx);
+}
+
+export type EngineActionFunc<C = any> = (
+  engine: TickRunnableEngine<C>,
+  child?: CTickable<C>
+) => void;
 
 export type TTickRunnableEngineOptions<C = any> = {
-  clock?: IClock & ITimeTickable;
-  init?: TickRunnableFunc<C>;
+  clock?: IClock & ITickable;
+  init?: CTickableFunc<C>;
   handleDone?: (
     engine: TickRunnableEngine<C>,
     t: number,
     ctx: C,
-    child: TickRunnable<C>
-  ) => ITickRunnable<C> | undefined;
+    child: CTickable<C>
+  ) => ICTickable<C> | undefined;
 };
 
 type TEvent<C> = {
   t: number;
   action: EngineActionFunc<C>;
-  child?: TickRunnable<C>;
+  child?: CTickable<C>;
 };
 
 const default_TTickRunnableEngineOptions: TTickRunnableEngineOptions = {};
 
-export class TickRunnableEngine<C> implements ITimeTickable, IClock {
+export class TickRunnableEngine<C> implements ITickable, IClock {
   ctx: C | undefined;
-  private children: { child: TickRunnable<C>; run: TickRunnableFunc<C> }[] = [];
+  private children: { child: CTickable<C>; run: CTickableFunc<C> }[] = [];
   private opt: TTickRunnableEngineOptions<C>;
-  private clock: IClock & ITimeTickable;
+  private clock: IClock & ITickable;
   private initialized = false;
   private events: Heap<TEvent<C>>;
 
   constructor(
-    children: TickRunnable<C>[],
+    children: CTickable<C>[],
     options: Partial<TTickRunnableEngineOptions> = {}
   ) {
-    this.children.push(...children.map((c) => this.adaptTickRunnable(c)));
+    this.children.push(...children.map((c) => this.adaptCTickable(c)));
     this.opt = { ...default_TTickRunnableEngineOptions, ...options };
     this.clock = this.opt.clock ?? new ClockBase();
 
@@ -60,8 +64,8 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
     this.ctx = { ...ctx0 };
   }
 
-  timeTick(t: number): string {
-    this.clock.timeTick(t);
+  tick(t: number): string {
+    this.clock.tick(t);
 
     if (this.ctx == undefined) {
       return "";
@@ -85,7 +89,7 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
     const doneChildren = [] as number[];
     const postActions: {
       action: EngineActionFunc<C>;
-      child: TickRunnable<C>;
+      child: CTickable<C>;
     }[] = [];
 
     for (let i = 0; i < this.children.length; i += 1) {
@@ -101,7 +105,7 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
           );
           if (newChild != undefined) {
             console.log("New Child:", i, child, newChild);
-            this.children[i] = this.adaptTickRunnable(newChild);
+            this.children[i] = this.adaptCTickable(newChild);
           } else {
             doneChildren.push(i);
           }
@@ -123,37 +127,34 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
     return "";
   }
 
-  //
-  private adaptTickRunnable(tr: TickRunnable<C>): {
-    child: TickRunnable<C>;
-    run: TickRunnableFunc<C>;
-  } {
-    return typeof tr == "function"
-      ? { child: tr, run: tr }
-      : { child: tr, run: (t, dt, ctx) => tr.tickRun(t, dt, ctx) };
-  }
-
   // children
-  appendChild(child: TickRunnable<C>) {
-    this.children.push(this.adaptTickRunnable(child));
+  appendChild(child: CTickable<C>) {
+    this.children.push(this.adaptCTickable(child));
   }
 
-  prependChild(child: TickRunnable<C>) {
-    this.children.unshift(this.adaptTickRunnable(child));
+  prependChild(child: CTickable<C>) {
+    this.children.unshift(this.adaptCTickable(child));
   }
 
-  deleteChild(child: TickRunnable<C>) {
+  deleteChild(child: CTickable<C>) {
     const index = this.children.findIndex((c) => c.child == child);
     if (index >= 0) {
       this.children.splice(index, 1);
     }
   }
 
-  replaceChild(oldChild: TickRunnable<C>, newChild: TickRunnable<C>) {
+  replaceChild(oldChild: CTickable<C>, newChild: CTickable<C>) {
     const index = this.children.findIndex((c) => c.child == oldChild);
     if (index >= 0) {
-      this.children[index] = this.adaptTickRunnable(newChild);
+      this.children[index] = this.adaptCTickable(newChild);
     }
+  }
+
+  private adaptCTickable(tr: CTickable<C>): {
+    child: CTickable<C>;
+    run: CTickableFunc<C>;
+  } {
+    return { child: tr, run: ctickableFunc(tr) }
   }
 
   // clock delegation
@@ -178,11 +179,7 @@ export class TickRunnableEngine<C> implements ITimeTickable, IClock {
   }
 
   // events
-  scheduleAction(
-    t: number,
-    action: EngineActionFunc<C>,
-    item?: TickRunnable<C>
-  ) {
+  scheduleAction(t: number, action: EngineActionFunc<C>, item?: CTickable<C>) {
     this.events.push({ t, action, child: item });
   }
 }
