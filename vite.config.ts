@@ -5,7 +5,6 @@ import path from "node:path";
 // import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  
   // plugins: [tsconfigPaths(), solid()],
   plugins: [solid()],
   test: {
@@ -18,5 +17,15 @@ export default defineConfig({
         replacement: path.resolve(__dirname, "src"),
       },
     ],
+  },
+  build: {
+    chunkSizeWarningLimit: 1200000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          p5: ["p5"],
+        },
+      },
+    },
   },
 });

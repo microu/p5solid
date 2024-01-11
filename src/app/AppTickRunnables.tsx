@@ -3,6 +3,7 @@ import { tickRunableSampleA } from "./p5samples/sampleTickRunnableA";
 import AppLayout from "./AppLayout";
 import { tickRunableSampleB } from "./p5samples/sampleTickRunnableB";
 import { createSignal } from "solid-js";
+import { tickRunnableSampleC } from "./p5samples/sampleTickRunnableC";
 
 const [running, setRunning] = createSignal(true);
 
@@ -12,7 +13,7 @@ function AppTickRunnables() {
 
   const [runnerA, engineA] = tickRunableSampleA(600, 90);
   const [runnerB, _engineB] = tickRunableSampleB();
-
+  const [runnerC, _engineC] = tickRunnableSampleC(600,90)
 
   // console.log(runnerA, engineA)
 
@@ -34,6 +35,7 @@ function AppTickRunnables() {
           </button>
         </div>
         <P5Div runner={runnerB}></P5Div>
+        <P5Div runner={runnerC}></P5Div>
       </div>
     </AppLayout>
   );
