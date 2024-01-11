@@ -49,7 +49,7 @@ export function tickRunableSampleB(): [P5Runner, TickRunnableEngine<TContext>] {
 
   const engine = new TickRunnableEngine<TContext>([draw, update], {
     clock: new ClockBase({ scale: 1 / 1000 }),
-    init: (t: number, dt: number, ctx: any) => {
+    init: (t: number, _dt: number, _ctx: any) => {
       nextUpdate = t + 1.5 + Math.random() * 3;
       return "";
     },

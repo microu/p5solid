@@ -1,9 +1,42 @@
-export interface ITickable {
-  tick(t: number): void;
+export type TickableFunc<R = void> = (t: number) => R;
+export interface ITickable<R = void> {
+  tick: TickableFunc<R>;
+}
+export type Tickable<R = void> = TickableFunc<R> | ITickable<R>;
+export function tickableFunc<R>(tickable: Tickable<R>): TickableFunc<R> {
+  return typeof tickable == "function" ? tickable : (x) => tickable.tick(x);
 }
 
-export interface IDTickable {
-  dtick(t: number, dt: number): void;
+export type DTickableFunc<R = void> = (t: number, dt: number) => R;
+export interface IDTickable<R = void> {
+  dtick: DTickableFunc<R>;
+}
+export type DTickable<R = void> = DTickableFunc<R> | IDTickable<R>;
+export function dtickableFunc<R = void>(
+  tickable: DTickable<R>
+): DTickableFunc<R> {
+  return typeof tickable == "function"
+    ? tickable
+    : (x, dx) => tickable.dtick(x, dx);
+}
+
+export type CTickableFunc<C = any, R = void> = (
+  t: number,
+  dt: number,
+  ctx: C
+) => R;
+export interface ICTickable<C = any, R = void> {
+  ctick: CTickableFunc<C, R>;
+}
+export type CTickable<C = any, R = void> =
+  | CTickableFunc<C, R>
+  | ICTickable<C, R>;
+export function ctickableFunc<C, R>(
+  tickable: CTickable<C, R>
+): CTickableFunc<C, R> {
+  return typeof tickable == "function"
+    ? tickable
+    : (x, dx, ctx) => tickable.ctick(x, dx, ctx);
 }
 
 export interface IClock {

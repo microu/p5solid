@@ -1,5 +1,4 @@
 import AppLayoutHeader from "./AppLayoutHeader";
-import * as Plot from "@observablehq/plot";
 import { plotSinPeriodOffset } from "./plotSamples/sinPeriodOffset";
 import { plotSinKeyPoints } from "./plotSamples/sinKeyPoint";
 import { plotSinKeyPointsDec } from "./plotSamples/sinKeyPointDec";
@@ -9,7 +8,11 @@ import { removeAllChildren } from "@microu-mts/dom";
 function AppPlots() {
   let plotDiv: HTMLDivElement | undefined;
   let plotNames = ["Sin Offset", "Sin KP inc", "Sin KP dec"];
-  let plots = [plotSinPeriodOffset(), plotSinKeyPoints(), plotSinKeyPointsDec()];
+  let plots = [
+    plotSinPeriodOffset(),
+    plotSinKeyPoints(),
+    plotSinKeyPointsDec(),
+  ];
   let iplot = 0;
 
   function updatePlot(plot: HTMLElement | SVGSVGElement) {

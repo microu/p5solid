@@ -11,12 +11,10 @@ type TLine = {
 };
 
 export const sampleB = () => {
-
   // parameters
   const bgcolor = resolveColor("slate-800");
 
   //state
-  let t0 = 0;
   const lines: TLine[] = [];
 
   function draw(p: p5) {
@@ -26,9 +24,9 @@ export const sampleB = () => {
     for (let i = 0; i < lines.length; i += 1) {
       const line = lines[i];
       line.x1 += line.v * (-0.5 + line.bias + Math.random());
-      line.x2 += line.v* (-0.5 + line.bias + Math.random());
+      line.x2 += line.v * (-0.5 + line.bias + Math.random());
       p.stroke(line.color);
-      p.strokeWeight(1.2)
+      p.strokeWeight(1.2);
       p.line(line.x1, 0, line.x2, p.height);
       if (
         (line.x1 < 0 || line.x1 > p.width) &&
@@ -50,7 +48,6 @@ export const sampleB = () => {
   function setup(p: p5) {
     p.createCanvas(800, 60);
     p.frameRate(32);
-    t0 = p.millis();
     lines.push(createLine(), createLine(), createLine());
   }
 
@@ -65,7 +62,7 @@ export const sampleB = () => {
     resolveColor("emerald-100"),
     resolveColor("purple-100"),
   ];
-  
+
   function createLine(): TLine {
     const color = lineColors[Math.floor(Math.random() * lineColors.length)];
     const x1 = 100 + Math.random() * 600;

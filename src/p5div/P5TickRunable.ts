@@ -1,4 +1,4 @@
-import { TTickRunnableEngineOptions, CTickable, TickRunnableEngine } from "@src/tickables";
+import { TickRunnableEngine } from "@src/tickables";
 import p5 from "p5";
 import { P5Runner } from "./P5Runner";
 
@@ -11,7 +11,6 @@ export interface IP5Context {
 export interface IP5Context1 {
   p: p5;
 }
-
 
 export type TP5TickRunnableEngineOptions = {
   size?: { w: number; h: number };
@@ -45,11 +44,10 @@ export type TP5TickRunnableEngineOptions = {
 export function p5TickRunnableEngineRunner<C extends IP5Context>(
   engine: TickRunnableEngine<C>,
   ctx0: Omit<C, "p">,
-  options: TP5TickRunnableEngineOptions = {},
+  options: TP5TickRunnableEngineOptions = {}
 ): P5Runner {
-
   function setup(p: p5) {
-    engine.init({...ctx0, p:p} as C)
+    engine.init({ ...ctx0, p: p } as C);
     if (options.size != undefined) {
       p.createCanvas(options.size.w, options.size.h);
     }
@@ -65,4 +63,3 @@ export function p5TickRunnableEngineRunner<C extends IP5Context>(
 
   return new P5Runner(setup, draw);
 }
-

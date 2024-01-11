@@ -40,8 +40,8 @@ export function tickRunableSampleA(
 
   function replaceSquare(
     t: number,
-    ctx: TContext,
-    e: TickRunnableEngine<TContext>,
+    _ctx: TContext,
+    _e: TickRunnableEngine<TContext>,
     currentSquare: MovingSquare<TContext>
   ): MovingSquare<TContext> {
     const d = 2;

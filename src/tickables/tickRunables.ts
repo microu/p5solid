@@ -1,56 +1,56 @@
 import Heap from "heap-js";
 import { ClockBase, IClock, ITickable } from ".";
 
-export type CTickableFunc<C = any> = (
+export type EngineTickableFunc<C = any> = (
   t: number,
   dt: number,
   ctx: C
 ) => undefined | string | EngineActionFunc<C>;
 
-export interface ICTickable<C = any> {
-  ctick: CTickableFunc<C>;
+export interface IEngineTickable<C = any> {
+  ctick: EngineTickableFunc<C>;
 }
 
-export type CTickable<C = any> = ICTickable<C> | CTickableFunc<C>;
+export type EngineTickable<C = any> = IEngineTickable<C> | EngineTickableFunc<C>;
 
-export function ctickableFunc<C>(ct: CTickable<C>): CTickableFunc<C> {
+export function engineTickableFunc<C>(ct: EngineTickable<C>): EngineTickableFunc<C> {
   return typeof ct == "function" ? ct : (t, dt, ctx) => ct.ctick(t, dt, ctx);
 }
 
 export type EngineActionFunc<C = any> = (
   engine: TickRunnableEngine<C>,
-  child?: CTickable<C>
+  child?: EngineTickable<C>
 ) => void;
 
 export type TTickRunnableEngineOptions<C = any> = {
   clock?: IClock & ITickable;
-  init?: CTickableFunc<C>;
+  init?: EngineTickableFunc<C>;
   handleDone?: (
     engine: TickRunnableEngine<C>,
     t: number,
     ctx: C,
-    child: CTickable<C>
-  ) => ICTickable<C> | undefined;
+    child: EngineTickable<C>
+  ) => IEngineTickable<C> | undefined;
 };
 
 type TEvent<C> = {
   t: number;
   action: EngineActionFunc<C>;
-  child?: CTickable<C>;
+  child?: EngineTickable<C>;
 };
 
 const default_TTickRunnableEngineOptions: TTickRunnableEngineOptions = {};
 
 export class TickRunnableEngine<C> implements ITickable, IClock {
   ctx: C | undefined;
-  private children: { child: CTickable<C>; run: CTickableFunc<C> }[] = [];
+  private children: { child: EngineTickable<C>; run: EngineTickableFunc<C> }[] = [];
   private opt: TTickRunnableEngineOptions<C>;
   private clock: IClock & ITickable;
   private initialized = false;
   private events: Heap<TEvent<C>>;
 
   constructor(
-    children: CTickable<C>[],
+    children: EngineTickable<C>[],
     options: Partial<TTickRunnableEngineOptions> = {}
   ) {
     this.children.push(...children.map((c) => this.adaptCTickable(c)));
@@ -89,7 +89,7 @@ export class TickRunnableEngine<C> implements ITickable, IClock {
     const doneChildren = [] as number[];
     const postActions: {
       action: EngineActionFunc<C>;
-      child: CTickable<C>;
+      child: EngineTickable<C>;
     }[] = [];
 
     for (let i = 0; i < this.children.length; i += 1) {
@@ -128,33 +128,33 @@ export class TickRunnableEngine<C> implements ITickable, IClock {
   }
 
   // children
-  appendChild(child: CTickable<C>) {
+  appendChild(child: EngineTickable<C>) {
     this.children.push(this.adaptCTickable(child));
   }
 
-  prependChild(child: CTickable<C>) {
+  prependChild(child: EngineTickable<C>) {
     this.children.unshift(this.adaptCTickable(child));
   }
 
-  deleteChild(child: CTickable<C>) {
+  deleteChild(child: EngineTickable<C>) {
     const index = this.children.findIndex((c) => c.child == child);
     if (index >= 0) {
       this.children.splice(index, 1);
     }
   }
 
-  replaceChild(oldChild: CTickable<C>, newChild: CTickable<C>) {
+  replaceChild(oldChild: EngineTickable<C>, newChild: EngineTickable<C>) {
     const index = this.children.findIndex((c) => c.child == oldChild);
     if (index >= 0) {
       this.children[index] = this.adaptCTickable(newChild);
     }
   }
 
-  private adaptCTickable(tr: CTickable<C>): {
-    child: CTickable<C>;
-    run: CTickableFunc<C>;
+  private adaptCTickable(tr: EngineTickable<C>): {
+    child: EngineTickable<C>;
+    run: EngineTickableFunc<C>;
   } {
-    return { child: tr, run: ctickableFunc(tr) }
+    return { child: tr, run: engineTickableFunc(tr) }
   }
 
   // clock delegation
@@ -179,7 +179,7 @@ export class TickRunnableEngine<C> implements ITickable, IClock {
   }
 
   // events
-  scheduleAction(t: number, action: EngineActionFunc<C>, item?: CTickable<C>) {
+  scheduleAction(t: number, action: EngineActionFunc<C>, item?: EngineTickable<C>) {
     this.events.push({ t, action, child: item });
   }
 }

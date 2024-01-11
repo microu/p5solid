@@ -6,7 +6,7 @@ import {
 } from "@src/pvalue";
 import { PVSegments } from "@src/pvalue/PVSegments";
 import { PVSin } from "@src/pvalue/PVSin";
-import { EngineActionFunc, ICTickable } from "@src/tickables";
+import { EngineActionFunc, IEngineTickable } from "@src/tickables";
 import p5 from "p5";
 
 export interface IMovingSquareData {
@@ -24,7 +24,7 @@ type TPVMovingSquareData = {
 };
 
 export class MovingSquare<TContext extends { p: p5 }>
-  implements ICTickable<TContext>, IMovingSquareData
+  implements IEngineTickable<TContext>, IMovingSquareData
 {
   t = -1;
   cx: number;
