@@ -23,16 +23,24 @@ type CTickEngineEvent<C> = {
 export type CTickEngineOptions<C = any> = {
   clock?: ITickableClock;
   init?: CTickEngineActionFunc<C>;
+  layers: string[];
+  defaultLayer: string;
 };
 
-const default_CTickEngineOptions: CTickEngineOptions = {};
+type TChildEntry<C> = {
+  child: CTickable<C, ChildResult>;
+  func: CTickableFunc<C, ChildResult>;
+  deleted: boolean;
+};
+
+const default_CTickEngineOptions: CTickEngineOptions = {
+  layers: [""],
+  defaultLayer: "",
+};
 
 export class CTickEngine<C = any> implements ITickableClock {
   clock: ITickableClock;
-  children: {
-    child: CTickable<C, ChildResult>;
-    func: CTickableFunc<C, ChildResult>;
-  }[] = [];
+  children: Map<string, TChildEntry<C>[]>;
   opt: CTickEngineOptions<C>;
   events: Heap<CTickEngineEvent<C>>;
   ctx?: C;
@@ -41,13 +49,44 @@ export class CTickEngine<C = any> implements ITickableClock {
   // constructor + init
 
   constructor(
-    children: CTickable<C, ChildResult>[],
+    children: (
+      | CTickable<C, ChildResult>
+      | [CTickable<C, ChildResult>, string]
+    )[],
     options: Partial<CTickEngineOptions<C>> = {}
   ) {
-    this.children.push(
-      ...children.map((child) => ({ child: child, func: ctickableFunc(child) }))
-    );
     this.opt = { ...default_CTickEngineOptions, ...options };
+
+    if (this.opt.layers.indexOf(this.opt.defaultLayer) < 0) {
+      throw new Error(
+        `Default layer "${this.opt.defaultLayer}" not in layers list`
+      );
+    }
+
+    this.children = new Map();
+    for (const l of this.opt.layers) {
+      this.children.set(l, []);
+    }
+
+    console.log("CHILDREN:", this.children);
+
+    for (const child of children) {
+      if (Array.isArray(child)) {
+        const [c, layer] = child;
+        if (this.children.has(layer)) {
+          this.children
+            .get(layer)!
+            .push({ child: c, func: ctickableFunc(c), deleted: false });
+        } else {
+          throw new Error(`Unknown layer: "${this.opt.defaultLayer}"`);
+        }
+      } else {
+        this.children
+          .get(this.opt.defaultLayer)!
+          .push({ child: child, func: ctickableFunc(child), deleted: false });
+      }
+    }
+
     this.clock = this.opt.clock ?? new ClockBase();
     this.events = new Heap<CTickEngineEvent<C>>((a, b) => a.t - b.t);
   }
@@ -78,19 +117,18 @@ export class CTickEngine<C = any> implements ITickableClock {
 
     // run childrens
 
-    const doneChildren = [] as number[];
-
-    for (let i = 0; i < this.children.length; i += 1) {
-      const child = this.children[i];
-      const r = child.func(this.t, this.dt, this.ctx);
-      if (r == "!done") {
-        doneChildren.push(i);
+    for (const [_layerName, layer] of this.children) {
+      for (const c of layer) {
+        if (!c.deleted) {
+          const r = c.func(this.t, this.dt, this.ctx);
+          if (r == "!done") {
+            c.deleted = true;
+          }
+        }
       }
     }
 
-    for (let i = doneChildren.length - 1; i >= 0; i -= 1) {
-      this.children.splice(doneChildren[i], 1);
-    }
+    // remove deleted
 
     return "";
   }

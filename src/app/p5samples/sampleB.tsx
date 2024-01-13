@@ -79,5 +79,5 @@ export const sampleB = () => {
     };
   }
 
-  return new P5Runner(setup, draw);
+  return new P5Runner({setup, draw});
 };

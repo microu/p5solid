@@ -56,5 +56,5 @@ export const sampleA = () => {
     t0 = p.millis();
   }
 
-  return new P5Runner(setup, draw);
+  return new P5Runner({setup, draw});
 };

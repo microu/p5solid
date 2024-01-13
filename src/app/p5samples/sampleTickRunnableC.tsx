@@ -1,6 +1,6 @@
 import { p5CTickEngineRunner } from "@src/p5div/P5CTickEngineRunner";
 import { P5Runner } from "@src/p5div/P5Runner";
-import { CTickEngine } from "@src/tickables/ctickEngine";
+import { CTickEngine } from "@src/tickables/CTickEngine";
 import p5 from "p5";
 import { resolveColor } from "../twconf";
 import { CTickableFunc, ClockBase } from "@src/tickables";
@@ -50,12 +50,22 @@ export function tickRunnableSampleC(
     return "";
   };
 
-  const engine = new CTickEngine([drawBg, movePoints, drawLine], {
-    clock: new ClockBase({ scale: 1 / 1000 }),
-  });
+  const clock = new ClockBase({ scale: 1 / 1000 });
+
+  const engine = new CTickEngine(
+    [[drawBg, "bg"], [movePoints, "animate"], drawLine],
+    {
+      layers: ["bg", "animate", "draw"],
+      defaultLayer: "draw",
+      clock: clock,
+    }
+  );
 
   const runner = p5CTickEngineRunner<TContext>(engine, ctx0, {
     size: { w, h },
+    mouseClicked() {
+      clock.paused = !clock.paused;
+    },
   });
 
   return [runner, engine];

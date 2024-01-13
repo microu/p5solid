@@ -61,5 +61,5 @@ export function p5TickRunnableEngineRunner<C extends IP5Context>(
     engine.tick(p.millis());
   }
 
-  return new P5Runner(setup, draw);
+  return new P5Runner({ setup, draw });
 }

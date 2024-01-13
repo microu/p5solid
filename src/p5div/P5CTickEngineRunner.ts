@@ -1,6 +1,6 @@
 import p5 from "p5";
 import { P5Runner } from "./P5Runner";
-import { CTickEngine } from "@src/tickables/ctickEngine";
+import { CTickEngine } from "@src/tickables/CTickEngine";
 
 export interface IP5Context {
   p: p5;
@@ -9,6 +9,7 @@ export interface IP5Context {
 export type TP5CTickEngineRunnerOptions = {
   size?: { w: number; h: number };
   frameRate?: number;
+  mouseClicked?: (p: p5, e?: Object) => void;
 };
 
 export function p5CTickEngineRunner<C extends IP5Context>(
@@ -31,5 +32,11 @@ export function p5CTickEngineRunner<C extends IP5Context>(
     engine.tick(p.millis());
   }
 
-  return new P5Runner(setup, draw);
+  function mouseClicked(p: p5, e?: Object) {
+    if (options.mouseClicked) {
+      options.mouseClicked(p, e);
+    }
+  }
+
+  return new P5Runner({ setup, draw, mouseClicked });
 }
