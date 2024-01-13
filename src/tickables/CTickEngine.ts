@@ -7,7 +7,7 @@ import {
   ctickableFunc,
 } from "./tickables";
 
-type ChildResult = string;
+export type ChildResult = string;
 
 export type CTickEngineActionFunc<C = any> = (
   engine: CTickEngine<C>,
@@ -74,16 +74,12 @@ export class CTickEngine<C = any> implements ITickableClock {
       if (Array.isArray(child)) {
         const [c, layer] = child;
         if (this.children.has(layer)) {
-          this.children
-            .get(layer)!
-            .push({ child: c, func: ctickableFunc(c), deleted: false });
+          this.children.get(layer)!.push(this._childEntry(c));
         } else {
           throw new Error(`Unknown layer: "${this.opt.defaultLayer}"`);
         }
       } else {
-        this.children
-          .get(this.opt.defaultLayer)!
-          .push({ child: child, func: ctickableFunc(child), deleted: false });
+        this.children.get(this.opt.defaultLayer)!.push(this._childEntry(child));
       }
     }
 
@@ -116,7 +112,6 @@ export class CTickEngine<C = any> implements ITickableClock {
     }
 
     // run childrens
-
     for (const [_layerName, layer] of this.children) {
       for (const c of layer) {
         if (!c.deleted) {
@@ -129,7 +124,14 @@ export class CTickEngine<C = any> implements ITickableClock {
     }
 
     // remove deleted
-
+    for (const [_layerName, layer] of this.children) {
+      for (let i = layer.length - 1; i >= 0; i -= 1) {
+        const entry = layer[i];
+        if (entry.deleted) {
+          layer.splice(i, 1);
+        }
+      }
+    }
     return "";
   }
 
@@ -152,5 +154,47 @@ export class CTickEngine<C = any> implements ITickableClock {
 
   set paused(v: boolean) {
     this.clock.paused = v;
+  }
+
+  // children
+  addChild(child: CTickable<C, ChildResult>, layer?: string) {
+    layer ??= this.opt.defaultLayer;
+    const l = this.children.get(layer);
+    if (l) {
+      l.push(this._childEntry(child));
+    }
+  }
+
+  delChild(child: CTickable<C, ChildResult>) {
+    const r = this._findChild(child);
+    if (r != undefined) {
+      const entry = r[0][r[1]];
+      entry.deleted = true;
+    }
+  }
+
+  _findChild(
+    child: CTickable<C, ChildResult>
+  ): [TChildEntry<C>[], number] | undefined {
+    for (const [_layerName, layer] of this.children) {
+      const index = layer.findIndex((c) => c.child == child);
+      if (index >= 0) {
+        return [layer, index];
+      }
+    }
+    return undefined;
+  }
+
+  _childEntry(child: CTickable<C, ChildResult>): TChildEntry<C> {
+    return { child, func: ctickableFunc(child), deleted: false };
+  }
+
+  // events
+  scheduleAction(
+    t: number,
+    action: CTickEngineActionFunc<C>,
+    item?: CTickable<C, ChildResult>
+  ) {
+    this.events.push({ t, action, child: item });
   }
 }
