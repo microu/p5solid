@@ -9,15 +9,11 @@ import {
 
 export type ChildResult = string;
 
-export type CTickEngineActionFunc<C = any> = (
-  engine: CTickEngine<C>,
-  child?: CTickable<C, ChildResult>
-) => void;
+export type CTickEngineActionFunc<C = any> = (engine: CTickEngine<C>) => void;
 
 type CTickEngineEvent<C> = {
   t: number;
   action: CTickEngineActionFunc<C>;
-  child?: CTickable<C, ChildResult>;
 };
 
 export type CTickEngineOptions<C = any> = {
@@ -27,16 +23,22 @@ export type CTickEngineOptions<C = any> = {
   defaultLayer: string;
 };
 
-type TChildEntry<C> = {
-  child: CTickable<C, ChildResult>;
-  func: CTickableFunc<C, ChildResult>;
-  deleted: boolean;
-};
-
 const default_CTickEngineOptions: CTickEngineOptions = {
   layers: [""],
   defaultLayer: "",
 };
+
+export type TCTickEngineChild<C> =
+  | CTickable<C, ChildResult>
+  | CTickable<C, ChildResult>[];
+
+export type TChildEntry<C> = {
+  child: TCTickEngineChild<C>;
+  func: CTickableFunc<C, ChildResult>;
+  deleted: boolean;
+};
+
+type TChildArg<C> = TCTickEngineChild<C> | [string, TCTickEngineChild<C>];
 
 export class CTickEngine<C = any> implements ITickableClock {
   clock: ITickableClock;
@@ -49,10 +51,7 @@ export class CTickEngine<C = any> implements ITickableClock {
   // constructor + init
 
   constructor(
-    children: (
-      | CTickable<C, ChildResult>
-      | [CTickable<C, ChildResult>, string]
-    )[],
+    children: TChildArg<C>[],
     options: Partial<CTickEngineOptions<C>> = {}
   ) {
     this.opt = { ...default_CTickEngineOptions, ...options };
@@ -72,11 +71,14 @@ export class CTickEngine<C = any> implements ITickableClock {
 
     for (const child of children) {
       if (Array.isArray(child)) {
-        const [c, layer] = child;
-        if (this.children.has(layer)) {
-          this.children.get(layer)!.push(this._childEntry(c));
+        if (typeof child[0] == "string") {
+          const [layer, c] = child as [string, TCTickEngineChild<C>];
+          if (this.children.has(layer)) {
+            this.children.get(layer)!.push(this._childEntry(c));
+          } else {
+            throw new Error(`Unknown layer: "${this.opt.defaultLayer}"`);
+          }
         } else {
-          throw new Error(`Unknown layer: "${this.opt.defaultLayer}"`);
         }
       } else {
         this.children.get(this.opt.defaultLayer)!.push(this._childEntry(child));
@@ -108,7 +110,7 @@ export class CTickEngine<C = any> implements ITickableClock {
     // run events
     while (this.events.peek() != undefined && this.events.peek()!.t <= this.t) {
       const e = this.events.pop()!;
-      e.action(this, e.child);
+      e.action(this);
     }
 
     // run childrens
@@ -185,16 +187,26 @@ export class CTickEngine<C = any> implements ITickableClock {
     return undefined;
   }
 
-  _childEntry(child: CTickable<C, ChildResult>): TChildEntry<C> {
-    return { child, func: ctickableFunc(child), deleted: false };
+  _childEntry(child: TCTickEngineChild<C>): TChildEntry<C> {
+    if (Array.isArray(child)) {
+      const func: CTickableFunc<C, ChildResult> = (t, dt, ctx) => {
+        for (const c of child) {
+          if (typeof c == "function") {
+            c(t, dt, ctx);
+          } else {
+            c.ctick(t, dt, ctx);
+          }
+        }
+        return "";
+      };
+      return { child, func, deleted: false };
+    } else {
+      return { child, func: ctickableFunc(child), deleted: false };
+    }
   }
 
   // events
-  scheduleAction(
-    t: number,
-    action: CTickEngineActionFunc<C>,
-    item?: CTickable<C, ChildResult>
-  ) {
-    this.events.push({ t, action, child: item });
+  scheduleAction(t: number, action: CTickEngineActionFunc<C>) {
+    this.events.push({ t, action });
   }
 }

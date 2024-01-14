@@ -1,14 +1,9 @@
 import { p5CTickEngineRunner } from "@src/p5div/P5CTickEngineRunner";
 import { P5Runner } from "@src/p5div/P5Runner";
-import { CTickEngine, ChildResult } from "@src/tickables/CTickEngine";
+import { CTickEngine } from "@src/tickables/CTickEngine";
 import p5 from "p5";
 import { resolveColor } from "../twconf";
-import {
-  CTickable,
-  CTickableFunc,
-  ClockBase,
-  ICTickable,
-} from "@src/tickables";
+import { CTickableFunc, ClockBase, ICTickable } from "@src/tickables";
 
 class MovingPoint implements ICTickable<TContext> {
   x: number;
@@ -76,17 +71,20 @@ export function tickRunnableSampleC(
     return "";
   };
 
-  const clock = new ClockBase({ scale: 1 / 1000 });
-  const pointChildren: [MovingPoint, string][] = points.map((p) => [
-    p,
-    "animate",
-  ]);
 
-  const engine = new CTickEngine([[drawBg, "bg"], ...pointChildren, drawLine], {
-    layers: ["bg", "animate", "draw"],
-    defaultLayer: "draw",
-    clock: clock,
-  });
+
+
+
+  const clock = new ClockBase({ scale: 1 / 1000 });
+
+  const engine = new CTickEngine(
+    [["bg", drawBg], ["animate", points], drawLine],
+    {
+      layers: ["bg", "animate", "draw"],
+      defaultLayer: "draw",
+      clock: clock,
+    }
+  );
 
   const runner = p5CTickEngineRunner<TContext>(engine, ctx0, {
     size: { w, h },
