@@ -8,7 +8,10 @@ const [body] = document.getElementsByTagName("body");
 
 render(() => <AppHome />, body);
 
+console.log("COLLATZ", collatzSequence(27))
+
 import Heap from "heap-js";
+import { collatzSequence } from "./app/collatz";
 
 type TEvent = { t: number; name: string };
 

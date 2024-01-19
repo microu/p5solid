@@ -4,6 +4,7 @@ import AppLayout from "./AppLayout";
 import { tickRunableSampleB } from "./p5samples/sampleTickRunnableB";
 import { createSignal } from "solid-js";
 import { tickRunnableSampleC } from "./p5samples/sampleTickRunnableC";
+import { collatzSampleA } from "./collatz/collatzSampleA";
 
 const [running, setRunning] = createSignal(true);
 
@@ -13,7 +14,8 @@ function AppTickRunnables() {
 
   const [runnerA, engineA] = tickRunableSampleA(600, 90);
   const [runnerB, _engineB] = tickRunableSampleB();
-  const [runnerC, _engineC] = tickRunnableSampleC(600,90)
+  const [runnerC, _engineC] = tickRunnableSampleC(600,180)
+  const [runnerCollatzA, _engineCollatzA] = collatzSampleA(600, 120)
 
   // console.log(runnerA, engineA)
 
@@ -36,6 +38,7 @@ function AppTickRunnables() {
         </div>
         <P5Div runner={runnerB}></P5Div>
         <P5Div runner={runnerC}></P5Div>
+        <P5Div runner={runnerCollatzA}></P5Div>
       </div>
     </AppLayout>
   );

@@ -4,18 +4,21 @@ import { CTickEngine } from "@src/tickables/CTickEngine";
 import p5 from "p5";
 import { resolveColor } from "../twconf";
 import { CTickableFunc, ClockBase, ICTickable } from "@src/tickables";
+import { NumberSegments } from "../utils/geometry";
 
 class MovingPoint implements ICTickable<TContext> {
   x: number;
   y: number;
   fqx: number;
   fqy: number;
+  zonex = -1;
+  zoney = -1;
 
   constructor(
     readonly t0: number,
     readonly x0: number,
     readonly y0: number,
-    readonly h: number
+    readonly r: number
   ) {
     this.x = x0;
     this.y = y0;
@@ -24,8 +27,8 @@ class MovingPoint implements ICTickable<TContext> {
   }
 
   ctick(t: number, _dt: number, _ctx: TContext) {
-    this.x = this.x0 + Math.sin(2 * Math.PI * this.fqx * t) * this.h;
-    this.y = this.y0 + (Math.sin(2 * Math.PI * this.fqy * t) * this.h) / 3;
+    this.x = this.x0 + Math.sin(2 * Math.PI * this.fqx * t) * this.r;
+    this.y = this.y0 + Math.sin(2 * Math.PI * this.fqy * t) * (this.r / 2);
     return "";
   }
 }
@@ -58,6 +61,34 @@ export function tickRunnableSampleC(
     return "";
   };
 
+  const nXSegments = 6;
+  const xlimits = Array.from(
+    { length: nXSegments },
+    (_x, i) => (i * w) / nXSegments
+  );
+  console.log("XLIMITS", xlimits);
+  const xSegments = new NumberSegments(xlimits, (i) => (i < 0 ? 0 : i));
+
+  const killPoints: CTickableFunc<TContext, string> = (_t, _dt, ctx) => {
+    const zoneCount = Array.from({ length: nXSegments }, () => 0);
+
+    for (const p of ctx.points) {
+      p.zonex = xSegments.segment(p.x0);
+      zoneCount[p.zonex] += 1;
+    }
+
+    for (let i = ctx.points.length - 1; i >= 0; i -= 1) {
+      const p = ctx.points[i];
+      if (zoneCount[p.zonex] > 2) {
+        console.log("Killing:", p.zonex, zoneCount);
+        ctx.points.splice(i, 1);
+        zoneCount[p.zonex] -= 1;
+      }
+    }
+    ctx.points.sort((pa, pb) => pa.y0 - pb.y0);
+    return "";
+  };
+
   const drawLine: CTickableFunc<TContext, string> = (_t, _dt, ctx) => {
     const p = ctx.p;
     p.noFill();
@@ -71,16 +102,12 @@ export function tickRunnableSampleC(
     return "";
   };
 
-
-
-
-
   const clock = new ClockBase({ scale: 1 / 1000 });
 
   const engine = new CTickEngine(
-    [["bg", drawBg], ["animate", points], drawLine],
+    [["bg", drawBg], ["animate", killPoints], ["points", points], drawLine],
     {
-      layers: ["bg", "animate", "draw"],
+      layers: ["bg", "animate", "points", "draw"],
       defaultLayer: "draw",
       clock: clock,
     }
@@ -93,23 +120,18 @@ export function tickRunnableSampleC(
     },
   });
 
-  let nextPointLeft = false;
-
-  function changePoints(e: CTickEngine<TContext>) {
-    const newPoint = nextPointLeft
-      ? new MovingPoint(e.t, w / 4, h / 2, h)
-      : new MovingPoint(e.t, (w * 3) / 4, h / 2, h);
-    nextPointLeft = !nextPointLeft;
-    if (e.ctx!.points.length > 9) {
-      e.ctx!.points.splice(0, 1);
-      engine.delChild(points[0]);
-    }
-    engine.addChild(newPoint, "animate");
+  function addPoint(e: CTickEngine<TContext>) {
+    const newPoint = new MovingPoint(
+      e.t,
+      w * 0.1 + Math.random() * 0.8 * w,
+      h * 0.2 + Math.random() * 0.6 * h,
+      h / 2
+    );
     e.ctx!.points.push(newPoint);
-    e.scheduleAction(e.t + 5, changePoints);
+    e.scheduleAction(e.t + 1, addPoint);
   }
 
-  engine.scheduleAction(5, changePoints);
+  engine.scheduleAction(2, addPoint);
 
   return [runner, engine];
 }
