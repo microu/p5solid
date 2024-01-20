@@ -19,12 +19,14 @@
     "d3-ease": "^3.0.1",
     "heap-js": "^2.3.0",
     "p5": "^1.8.0",
+    "random-js": "^2.1.0",
     "solid-js": "^1.7.8"
   },
   "devDependencies": {
     "@types/chroma-js": "^2.4.3",
     "@types/d3-ease": "^3.0.2",
     "@types/p5": "^1.7.3",
+    "@types/random-js": "^2.0.0",
     "autoprefixer": "^10.4.16",
     "jsdom": "^22.1.0",
     "npx": "^10.2.2",

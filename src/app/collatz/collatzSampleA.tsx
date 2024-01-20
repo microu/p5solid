@@ -11,6 +11,10 @@ import {
   TP5LinesDrawerOptions,
 } from "./P5LinesDrawer";
 
+import { Random } from "random-js";
+
+
+
 type TContext = {
   p: p5;
   n: number;
@@ -33,15 +37,28 @@ export function collatzSampleA(
     return "";
   };
 
+  function randomCollatzSequenceList():number[][] {
+
+    const r = [[]] as number[][]
+
+    while (r.length < 5) {
+      let seq = [] as number[]
+      while (seq.length < 12) {
+        seq = collatzSequence(rnd.integer(13, 10000))
+      }
+      r.push(seq)
+    }
+
+    return r;
+  }
+
+  const rnd = new Random()
+
   let nextChangeSeq = 3;
   const changeSeq: CTickableFunc<TContext, string> = (t, _dt, ctx) => {
     if (t >= nextChangeSeq) {
       ctx.n += 1;
-      ctx.seqList = [
-        collatzSequence(ctx.n),
-        collatzSequence(ctx.n * 29),
-        collatzSequence(ctx.n * 79),
-      ];
+      ctx.seqList = randomCollatzSequenceList()
 
       ctx.lineDrawer = undefined;
       nextChangeSeq += 1 + ctx.seqList[0].length / 20;
@@ -95,8 +112,8 @@ export function collatzSampleA(
 
   const ctx0 = {
     n: 27,
-    seqList: [collatzSequence(27)],
-    bgcolor: resolveColor("stone-400"),
+    seqList: randomCollatzSequenceList(),
+    bgcolor: resolveColor("stone-100"),
   };
 
   const runner = p5CTickEngineRunner<TContext>(engine, ctx0, {

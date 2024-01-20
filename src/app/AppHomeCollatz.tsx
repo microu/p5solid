@@ -3,9 +3,13 @@ import { collatzSampleA } from "./collatz/collatzSampleA";
 import AppLayout from "./AppLayout";
 import { P5Div } from "@src/p5div";
 
+function styleP5Canvas(canvas: HTMLCanvasElement) {
+  canvas.style.borderRadius = "6px";
+}
+
 const AppHomeCollatz: Component = () => {
-  const w = 400;
-  const h = 80;
+  const w = 500;
+  const h = 100;
 
   const [runnerCollatzA1, _engineCollatzA1] = collatzSampleA(w, h, {
     origin: "bl",
@@ -22,22 +26,44 @@ const AppHomeCollatz: Component = () => {
     origin: "tl",
     swapXY: true,
   });
-  const [runnerCollatzA5, _engineCollatzA5] = collatzSampleA(w, h,{
+  const [runnerCollatzA5, _engineCollatzA5] = collatzSampleA(w, h, {
     origin: "tr",
   });
 
   return (
     <AppLayout title="P5 /Solid - Collatz drawings">
-      <div class="grid grid-cols-[20%_60%_20%]  gap-2 bg-amber-100">
-        <div>AAA</div>
-        <P5Div runner={runnerCollatzA1}></P5Div>
-        <div>BBB</div>
-        <P5Div runner={runnerCollatzA2}></P5Div>
-        <P5Div runner={runnerCollatzA3}></P5Div>
-        <P5Div runner={runnerCollatzA4}></P5Div>
-        <div>CCC</div>
-        <P5Div runner={runnerCollatzA5}></P5Div>
-        <div>DDD</div>
+      <div class="_wrapper flex w-full bg-stone-100">
+        <div class="m-auto grid grid-cols-[110px_500px_110px] gap-1 bg-amber-900">
+          <div class="">AAA</div>
+          <P5Div
+            runner={runnerCollatzA1}
+            class="rounded-lg"
+            initCanvas={styleP5Canvas}
+          ></P5Div>
+          <div class="">BBB</div>
+          <P5Div
+            runner={runnerCollatzA2}
+            class="justify-self-end"
+            initCanvas={styleP5Canvas}
+          ></P5Div>
+          <P5Div
+            runner={runnerCollatzA3}
+            class=""
+            initCanvas={styleP5Canvas}
+          ></P5Div>
+          <P5Div
+            runner={runnerCollatzA4}
+            class="justify-self-start"
+            initCanvas={styleP5Canvas}
+          ></P5Div>
+          <div class="">CCC</div>
+          <P5Div
+            runner={runnerCollatzA5}
+            class=""
+            initCanvas={styleP5Canvas}
+          ></P5Div>
+          <div class="">DDD</div>
+        </div>
       </div>
     </AppLayout>
   );

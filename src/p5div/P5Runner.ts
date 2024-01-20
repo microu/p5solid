@@ -13,13 +13,17 @@ export class P5Runner {
     this.opt = { ...opt };
   }
 
-  run(node: HTMLElement) {
+  run(node: HTMLElement, initCanvas?: (canvas: HTMLCanvasElement) => void) {
     new p5((pArg) => {
       this.p = pArg;
       const p = pArg as unknown as p5;
 
       p.setup = () => {
         this.opt.setup(p);
+        const canvasElt = node.querySelector("canvas");
+        if (initCanvas != undefined) {
+          initCanvas(canvasElt!);
+        }
       };
 
       p.draw = () => {
