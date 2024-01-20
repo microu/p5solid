@@ -1,1 +1,2 @@
-export * from "./points.ts"
+export * from "./points.ts";
+export * from "./PointSequence.ts";

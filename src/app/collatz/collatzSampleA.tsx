@@ -5,7 +5,11 @@ import { CTickEngine } from "@src/tickables/CTickEngine";
 import p5 from "p5";
 import { collatzSequence } from ".";
 import { resolveColor } from "../twconf";
-import { P5LinesDrawer, TLineData } from "./P5LinesDrawer";
+import {
+  P5LinesDrawer,
+  TLineData,
+  TP5LinesDrawerOptions,
+} from "./P5LinesDrawer";
 
 type TContext = {
   p: p5;
@@ -17,9 +21,12 @@ type TContext = {
 
 export function collatzSampleA(
   w: number,
-  h: number
+  h: number,
+  lineDrawerOptions: Partial<TP5LinesDrawerOptions> = {}
 ): [P5Runner, CTickEngine<TContext>] {
   const clock = new ClockBase({ scale: 1 / 1000 });
+
+  lineDrawerOptions = { margin: 5, globalScale: false, ...lineDrawerOptions };
 
   const drawBg: CTickableFunc<TContext, string> = (_t, _dt, ctx) => {
     ctx.p.background(ctx.bgcolor);
@@ -63,20 +70,11 @@ export function collatzSampleA(
       i += 1;
     }
 
-    ctx.lineDrawer = new P5LinesDrawer(w, h, lines, { globalScale: false });
+    ctx.lineDrawer = new P5LinesDrawer(w, h, lines, lineDrawerOptions);
     return "";
   };
 
   const drawSeqLine: CTickableFunc<TContext, string> = (_t, _dt, ctx) => {
-    // const p = ctx.p;
-    // p.noFill();
-    // p.stroke(resolveColor("red-700"));
-    // p.strokeWeight(3);
-    // p.beginShape();
-    // for (const point of ctx.seqPoints ?? []) {
-    //   p.vertex(point.x, point.y);
-    // }
-    // p.endShape();
     ctx.lineDrawer?.draw(ctx.p);
     return "";
   };

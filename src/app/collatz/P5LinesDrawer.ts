@@ -5,7 +5,8 @@ import {
   ITransformMatrix,
   PointSequence,
   applyMatrix,
-  boxForPoints,
+  boxMapMatrix,
+  minMaxBoxForPoints,
 } from "@src/geom2d";
 
 export type TLineData = {
@@ -16,17 +17,24 @@ export type TLineData = {
   pointSeq?: PointSequence;
 };
 
-type TP5LinesDrawerOptions = {
+export type TP5LinesDrawerOptions = {
   globalScale: boolean;
+  margin: number;
+  origin: "bl" | "br" | "tl" | "tr";
+  swapXY: boolean;
 };
+
 const TP5LinesDrawerOptions_default: TP5LinesDrawerOptions = {
   globalScale: true,
+  margin: 0,
+  origin: "bl",
+  swapXY: false,
 };
 
 export class P5LinesDrawer {
   opt: TP5LinesDrawerOptions;
   box: IBox;
-  matrix: ITransformMatrix = { ax: 1, ay: 0, ac: 0, bx: 0, by: 1, bc: 0 };
+  matrix: ITransformMatrix = { ax: 1, bx: 0, cx: 0, ay: 0, by: 1, cy: 0 };
 
   constructor(
     readonly w: number,
@@ -41,12 +49,12 @@ export class P5LinesDrawer {
   _updateBoundingBox() {
     const boxPoints: IPoint[] = [];
     for (const line of this.lines) {
-      const { min, max } = boxForPoints(line.points);
-      line.box = { min, max };
+      const { a: min, b: max } = minMaxBoxForPoints(line.points);
+      line.box = { a: min, b: max };
       line.pointSeq = new PointSequence(line.points);
       boxPoints.push(min, max);
     }
-    this.box = boxForPoints(boxPoints);
+    this.box = minMaxBoxForPoints(boxPoints);
     this.matrix = this.matrixForBox(this.box);
     console.log("BOX/M:", this.box, this.matrix);
     for (const line of this.lines) {
@@ -75,13 +83,43 @@ export class P5LinesDrawer {
   }
 
   matrixForBox(box: IBox): ITransformMatrix {
+    const margin = this.opt.margin;
+
+    let drawBox: IBox;
+    if (this.opt.origin == "tl") {
+      drawBox = {
+        a: { x: margin, y: margin },
+        b: { x: this.w - margin, y: this.h - margin },
+      };
+    } else if (this.opt.origin == "bl") {
+      drawBox = {
+        a: { x: margin, y: this.h - margin },
+        b: { x: this.w - margin, y: margin },
+      };
+    } else if (this.opt.origin == "br") {
+      drawBox = {
+        a: { x: this.w - margin, y: this.h - margin },
+        b: { x: margin, y: margin },
+      };
+    } else {
+      // this.opt.origin == "tr"
+      drawBox = {
+        a: { x: this.w - margin, y: margin },
+        b: { x: margin, y: this.h - margin },
+      };
+    }
+
+    const m = boxMapMatrix(box, drawBox!, this.opt.swapXY);
+
+    return m;
+
     return {
-      ax: this.w / (box.max.x - box.min.x),
-      ay: 0,
-      ac: 0,
+      ax: this.w / (box.b.x - box.a.x),
       bx: 0,
-      by: -this.h / (box.max.y - box.min.y),
-      bc: this.h,
+      cx: 0,
+      ay: 0,
+      by: -this.h / (box.b.y - box.a.y),
+      cy: this.h,
     };
   }
 }

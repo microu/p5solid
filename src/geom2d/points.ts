@@ -4,8 +4,8 @@ export interface IPoint {
 }
 
 export interface IBox {
-  min: IPoint;
-  max: IPoint;
+  a: IPoint;
+  b: IPoint;
 }
 
 export type TPointArg = IPoint | [number, number];
@@ -32,9 +32,9 @@ export function pointListFromArg(arg: TPointListArg): IPoint[] {
   return [];
 }
 
-export function boxForPoints(points: IPoint[]): IBox {
+export function minMaxBoxForPoints(points: IPoint[]): IBox {
   if (points.length == 0) {
-    return { min: { x: 0, y: 0 }, max: { x: 0, y: 0 } };
+    return { a: { x: 0, y: 0 }, b: { x: 0, y: 0 } };
   }
   const min = { x: points[0].x, y: points[0].y };
   const max = { ...min };
@@ -44,17 +44,19 @@ export function boxForPoints(points: IPoint[]): IBox {
     max.x = Math.max(max.x, p.x);
     max.y = Math.max(max.y, p.y);
   }
-  return { min, max };
+  return { a: min, b: max };
 }
 
 export interface ITransformMatrix {
   readonly ax: number;
-  readonly ay: number;
-  readonly ac: number;
   readonly bx: number;
+  readonly cx: number;
+  readonly ay: number;
   readonly by: number;
-  readonly bc: number;
+  readonly cy: number;
 }
+
+export const identityMatrix = { ax: 1, bx: 0, cx: 0, ay: 0, by: 1, cy: 0 };
 
 export function applyMatrix(m: ITransformMatrix, arg: IPoint): IPoint;
 export function applyMatrix(m: ITransformMatrix, arg: IPoint[]): IPoint[];
@@ -66,57 +68,36 @@ export function applyMatrix(
     return arg.map((p) => applyMatrix(m, p));
   } else {
     return {
-      x: m.ax * arg.x + m.ay * arg.y + m.ac,
-      y: m.bx * arg.x + m.by * arg.y + m.bc,
+      x: m.ax * arg.x + m.bx * arg.y + m.cx,
+      y: m.ay * arg.x + m.by * arg.y + m.cy,
     };
   }
 }
 
-export class PointSequence implements Iterable<IPoint> {
-  private _points: IPoint[];
-  private _transformedPoints: IPoint[] | undefined;
-  private _matrix: ITransformMatrix | undefined;
-
-  constructor(points: TPointListArg) {
-    this._points = pointListFromArg(points);
-  }
-
-  set points(points: TPointListArg) {
-    this._points = pointListFromArg(points);
-    this._transformedPoints = undefined;
-  }
-
-  set matrix(m: ITransformMatrix | undefined) {
-    this._matrix = m;
-    this._transformedPoints = undefined;
-  }
-
-  get matrix() {
-    return this._matrix;
-  }
-
-  _update() {
-    if (this._transformedPoints != undefined) {
-      return;
-    }
-    if (this._matrix == undefined) {
-      this._transformedPoints = this._points;
-    } else {
-      this._transformedPoints = applyMatrix(this._matrix!, this._points);
-    }
-  }
-
-  *[Symbol.iterator]() {
-    this._update();
-    for (const p of this._transformedPoints!) {
-      yield p;
-    }
-  }
-
-  *segments(): Generator<[IPoint, IPoint]> {
-    this._update();
-    for (let i = 0; i < this._transformedPoints!.length - 1; i += 1) {
-      yield [this._transformedPoints![i], this._transformedPoints![i + 1]];
-    }
+export function boxMapMatrix(
+  box0: IBox,
+  box1: IBox,
+  swapXY = false
+): ITransformMatrix {
+  if (swapXY) {
+    const m: ITransformMatrix = {
+      ax: 0,
+      bx: (box1.b.x - box1.a.x) / (box0.b.y - box0.a.y),
+      cx: box1.a.x - box0.a.y,
+      ay: (box1.b.y - box1.a.y) / (box0.b.x - box0.a.x),
+      by: 0,
+      cy: box1.a.y - box0.a.x,
+    };
+    return m;
+  } else {
+    const m: ITransformMatrix = {
+      ax: (box1.b.x - box1.a.x) / (box0.b.x - box0.a.x),
+      bx: 0,
+      cx: box1.a.x - box0.a.x,
+      ay: 0,
+      by: (box1.b.y - box1.a.y) / (box0.b.y - box0.a.y),
+      cy: box1.a.y - box0.a.y,
+    };
+    return m;
   }
 }
