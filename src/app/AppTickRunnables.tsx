@@ -17,8 +17,7 @@ function AppTickRunnables() {
   const [runnerC, _engineC] = tickRunnableSampleC(600,180)
   const [runnerCollatzA, _engineCollatzA] = collatzSampleA(600, 120)
 
-  // console.log(runnerA, engineA)
-
+ 
   function toogleRun() {
     setRunning(!running());
     engineA.paused = !running()

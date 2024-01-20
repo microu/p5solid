@@ -2,6 +2,7 @@ import { Component } from "solid-js";
 import { collatzSampleA } from "./collatz/collatzSampleA";
 import AppLayout from "./AppLayout";
 import { P5Div } from "@src/p5div";
+import { collatzSampleB } from "./collatz/collatzSampleB";
 
 function styleP5Canvas(canvas: HTMLCanvasElement) {
   canvas.style.borderRadius = "6px";
@@ -18,10 +19,7 @@ const AppHomeCollatz: Component = () => {
     origin: "br",
     swapXY: true,
   });
-  const [runnerCollatzA3, _engineCollatzA3] = collatzSampleA(w, w, {
-    origin: "bl",
-    margin: 20,
-  });
+  const [runnerCollatzB, _engineCollatzB] = collatzSampleB(w,w,);
   const [runnerCollatzA4, _engineCollatzA4] = collatzSampleA(h, w, {
     origin: "tl",
     swapXY: true,
@@ -47,7 +45,7 @@ const AppHomeCollatz: Component = () => {
             initCanvas={styleP5Canvas}
           ></P5Div>
           <P5Div
-            runner={runnerCollatzA3}
+            runner={runnerCollatzB}
             class=""
             initCanvas={styleP5Canvas}
           ></P5Div>

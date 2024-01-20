@@ -6,10 +6,10 @@ import p5 from "p5";
 import { collatzSequence } from ".";
 import { resolveColor } from "../twconf";
 import {
-  P5LinesDrawer,
+  P5MultiLineDrawer,
   TLineData,
-  TP5LinesDrawerOptions,
-} from "./P5LinesDrawer";
+  TP5MultiLineDrawerOptions,
+} from "./P5MultiLineDrawer";
 
 import { Random } from "random-js";
 
@@ -19,14 +19,14 @@ type TContext = {
   p: p5;
   n: number;
   seqList: number[][];
-  lineDrawer?: P5LinesDrawer;
+  lineDrawer?: P5MultiLineDrawer;
   bgcolor: string;
 };
 
 export function collatzSampleA(
   w: number,
   h: number,
-  lineDrawerOptions: Partial<TP5LinesDrawerOptions> = {}
+  lineDrawerOptions: Partial<TP5MultiLineDrawerOptions> = {}
 ): [P5Runner, CTickEngine<TContext>] {
   const clock = new ClockBase({ scale: 1 / 1000 });
 
@@ -39,11 +39,11 @@ export function collatzSampleA(
 
   function randomCollatzSequenceList():number[][] {
 
-    const r = [[]] as number[][]
+    const r = [] as number[][]
 
     while (r.length < 5) {
       let seq = [] as number[]
-      while (seq.length < 12) {
+      while (seq.length < 8) {
         seq = collatzSequence(rnd.integer(13, 10000))
       }
       r.push(seq)
@@ -87,7 +87,7 @@ export function collatzSampleA(
       i += 1;
     }
 
-    ctx.lineDrawer = new P5LinesDrawer(w, h, lines, lineDrawerOptions);
+    ctx.lineDrawer = new P5MultiLineDrawer(w, h, lines, lineDrawerOptions);
     return "";
   };
 

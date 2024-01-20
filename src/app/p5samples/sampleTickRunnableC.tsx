@@ -66,7 +66,6 @@ export function tickRunnableSampleC(
     { length: nXSegments },
     (_x, i) => (i * w) / nXSegments
   );
-  console.log("XLIMITS", xlimits);
   const xSegments = new NumberSegments(xlimits, (i) => (i < 0 ? 0 : i));
 
   const killPoints: CTickableFunc<TContext, string> = (_t, _dt, ctx) => {
@@ -80,7 +79,6 @@ export function tickRunnableSampleC(
     for (let i = ctx.points.length - 1; i >= 0; i -= 1) {
       const p = ctx.points[i];
       if (zoneCount[p.zonex] > 2) {
-        console.log("Killing:", p.zonex, zoneCount);
         ctx.points.splice(i, 1);
         zoneCount[p.zonex] -= 1;
       }

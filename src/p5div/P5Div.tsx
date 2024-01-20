@@ -21,8 +21,6 @@ export const P5Div: Component<TProps> = (props) => {
 
   const r = <div ref={divElt} class={classes()}></div>;
   props.runner.run(divElt!, props.initCanvas);
-  const canvasElt = divElt!.querySelector("canvas");
-  console.log("CANVAS:", canvasElt);
   return r;
 };
 

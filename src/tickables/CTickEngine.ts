@@ -67,7 +67,6 @@ export class CTickEngine<C = any> implements ITickableClock {
       this.children.set(l, []);
     }
 
-    console.log("CHILDREN:", this.children);
 
     for (const child of children) {
       if (Array.isArray(child)) {

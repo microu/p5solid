@@ -104,7 +104,6 @@ export class TickRunnableEngine<C> implements ITickable, IClock {
             child.child
           );
           if (newChild != undefined) {
-            console.log("New Child:", i, child, newChild);
             this.children[i] = this.adaptCTickable(newChild);
           } else {
             doneChildren.push(i);

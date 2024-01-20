@@ -17,22 +17,22 @@ export type TLineData = {
   pointSeq?: PointSequence;
 };
 
-export type TP5LinesDrawerOptions = {
+export type TP5MultiLineDrawerOptions = {
   globalScale: boolean;
   margin: number;
   origin: "bl" | "br" | "tl" | "tr";
   swapXY: boolean;
 };
 
-const TP5LinesDrawerOptions_default: TP5LinesDrawerOptions = {
+const TP5MultiLineDrawerOptions_default: TP5MultiLineDrawerOptions = {
   globalScale: true,
   margin: 0,
   origin: "bl",
   swapXY: false,
 };
 
-export class P5LinesDrawer {
-  opt: TP5LinesDrawerOptions;
+export class P5MultiLineDrawer {
+  opt: TP5MultiLineDrawerOptions;
   box: IBox;
   matrix: ITransformMatrix = { ax: 1, bx: 0, cx: 0, ay: 0, by: 1, cy: 0 };
 
@@ -40,9 +40,9 @@ export class P5LinesDrawer {
     readonly w: number,
     readonly h: number,
     readonly lines: TLineData[],
-    options: Partial<TP5LinesDrawerOptions> = {}
+    options: Partial<TP5MultiLineDrawerOptions> = {}
   ) {
-    this.opt = { ...TP5LinesDrawerOptions_default, ...options };
+    this.opt = { ...TP5MultiLineDrawerOptions_default, ...options };
     this.box = this._updateBoundingBox();
   }
 
@@ -56,7 +56,6 @@ export class P5LinesDrawer {
     }
     this.box = minMaxBoxForPoints(boxPoints);
     this.matrix = this.matrixForBox(this.box);
-    console.log("BOX/M:", this.box, this.matrix);
     for (const line of this.lines) {
       line.pointSeq!.matrix = this.opt.globalScale
         ? this.matrix

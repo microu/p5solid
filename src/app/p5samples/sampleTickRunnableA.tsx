@@ -123,7 +123,6 @@ export function tickRunableSampleA(
     frameRate: 32,
   });
 
-  console.log("SAMPLE A:", runner, engine)
 
   return [runner, engine];
 }
